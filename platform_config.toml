@@ -1,0 +1,28 @@
+[platform]
+
+# Desktop platforms configuration
+[platform.firefox_desktop]
+enrollments_query_type = "normandy"
+app_id = "firefox-desktop"
+
+
+# Android platforms configuration
+[platform.fenix]
+app_id = "org.mozilla.fenix"
+
+[platform.focus_android]
+app_id = "org.mozilla.focus"
+
+[platform.klar_android]
+app_id = "org.mozilla.klar"
+
+
+# ios platforms configuration
+[platform.firefox_ios]
+app_id = "org.mozilla.ios.FirefoxBeta"
+
+[platform.focus_ios]
+app_id = "org.mozilla.ios.Focus"
+
+[platform.klar_ios]
+app_id = "org.mozilla.ios.Klar"

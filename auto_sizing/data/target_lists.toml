@@ -1,0 +1,19 @@
+[targets]
+minimum_version = ["108", "107", "106", "105", "104"]
+locale = ["(EN-US)", "(EN-US, EN-CA, EN-GB)"]
+country = ["US"]
+release_channel = ["nightly", "beta", "release"]
+user_type = ["new", "existing"]
+
+[parameters]
+power = [0.8]
+effect_size = [0.005, 0.01, 0.02, 0.05]
+
+[metrics]
+firefox_desktop = [
+    "active_hours",
+    "uri_count",
+    "search_count",
+    "ad_clicks",
+    "qualified_cumulative_days_of_use",
+]

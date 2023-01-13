@@ -1,0 +1,63 @@
+[metrics]
+
+[metrics.active_hours]
+friendly_name = "Active hours"
+description = """
+    Measures the amount of time (in 5-second increments) during which
+    Firefox received user input from a keyboard or mouse. The Firefox
+    window does not need to be focused.
+"""
+select_expression = '{{agg_sum("active_hours_sum")}}'
+data_source = "clients_daily"
+
+
+[metrics.uri_count]
+data_source = "clients_daily"
+select_expression = '{{agg_sum("scalar_parent_browser_engagement_total_uri_count_sum")}}'
+friendly_name = "URIs visited"
+description = """
+    Counts the total number of URIs visited.
+    Includes within-page navigation events (e.g. to anchors).
+"""
+category = "performance"
+type = "scalar"
+
+
+[data_sources]
+
+[data_sources.clients_daily]
+from_expression = "mozdata.telemetry.clients_daily"
+friendly_name = "Clients Daily"
+description = "Clients Daily"
+
+[segments]
+
+[segments.clients_daily_filter]
+data_source = "clients_daily"
+select_expression = """COALESCE(LOGICAL_OR(
+      (windows_build_number >= 18362) AND
+      (is_default_browser is FALSE) AND
+      (locale like "en%") AND 
+      (normalized_channel in ("release")) AND 
+      (mozfun.norm.truncate_version(app_display_version, 'major') >= 105)
+      ), FALSE)"""
+
+
+[segments.data_sources]
+
+[segments.data_sources.clients_daily]
+name = "clients_daily"
+from_expression = "mozdata.telemetry.clients_daily"
+window_start = 0
+window_end = 0
+
+[parameters]
+
+[parameters.sizing]
+power = [0.8]
+effect_size = [0.005, 0.01, 0.02]
+
+[parameters.dates]
+start_date = "2022-10-18"
+num_dates_enrollment = 1
+analysis_length = 2
