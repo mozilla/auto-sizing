@@ -104,7 +104,13 @@ class SizeCalculation:
             power=parameters["power"],
         )
 
-        result_dict = {key: res[key]["population_percent"] for key in res.keys()}
+        result_dict = {
+            key: {
+                "population_size": round(res[key]["population_size"], 2),
+                "population_percent": round(res[key]["population_percent"], 2),
+            }
+            for key in res.keys()
+        }
         result_dict["parameters"] = parameters
 
         return result_dict

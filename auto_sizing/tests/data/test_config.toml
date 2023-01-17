@@ -1,14 +1,7 @@
 [metrics]
 
-[metrics.active_hours]
-friendly_name = "Active hours"
-description = """
-    Measures the amount of time (in 5-second increments) during which
-    Firefox received user input from a keyboard or mouse. The Firefox
-    window does not need to be focused.
-"""
-select_expression = '{{agg_sum("active_hours_sum")}}'
-data_source = "clients_daily"
+[metrics.import_from_metric_hub]
+firefox_desktop = ["active_hours"]
 
 
 [metrics.uri_count]
@@ -31,6 +24,9 @@ friendly_name = "Clients Daily"
 description = "Clients Daily"
 
 [segments]
+
+[segments.import_from_metric_hub]
+firefox_desktop = ["regular_users_v3"]
 
 [segments.clients_daily_filter]
 data_source = "clients_daily"

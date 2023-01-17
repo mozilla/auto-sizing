@@ -31,22 +31,41 @@ class SegmentsList:
         if "data_sources" not in segments_dict.keys():
             raise SegmentDataSourcesTagNotFoundException(path)
 
+        if "import_from_metric_hub" in segments_dict.keys():
+            for app_id, segments in segments_dict["import_from_metric_hub"].items():
+                for segment in segments:
+                    segments_dict[segment] = ConfigLoader.get_segment(segment, app_id)
+            segments_dict.pop("import_from_metric_hub")
+
+        if "import_from_metric_hub" in segments_dict["data_sources"].keys():
+            for app_id, segment_data_sources in segments_dict["data_sources"][
+                "import_from_metric_hub"
+            ].items():
+                for segment_data_source in segment_data_sources:
+                    segments_dict["data_sources"][
+                        segment_data_source
+                    ] = ConfigLoader.get_segment_data_source(segment_data_source, app_id)
+            segments_dict["data_sources"].pop("import_from_metric_hub")
+
         Segment_list = []
         for key, value in segments_dict.items():
             if key == "data_sources":
                 continue
-            data_source = segments_dict["data_sources"][value["data_source"]]
-            Segment_list.append(
-                Segment(
-                    name=key,
-                    data_source=SegmentDataSource(
-                        name="", from_expr=data_source["from_expression"]
-                    ),
-                    select_expr=ConfigLoader.configs.get_env()
-                    .from_string(value["select_expression"])
-                    .render(),
+            if isinstance(value, Segment):
+                Segment_list.append(value)
+            else:
+                data_source = segments_dict["data_sources"][value["data_source"]]
+                Segment_list.append(
+                    Segment(
+                        name=key,
+                        data_source=SegmentDataSource(
+                            name="", from_expr=data_source["from_expression"]
+                        ),
+                        select_expr=ConfigLoader.configs.get_env()
+                        .from_string(value["select_expression"])
+                        .render(),
+                    )
                 )
-            )
 
         return Segment_list
 
@@ -94,20 +113,38 @@ class MetricsLists:
         if "data_sources" not in target_dict.keys():
             raise DataSourcesTagNotFoundException(path)
 
+        if "import_from_metric_hub" in metrics_dict.keys():
+            for app_id, metrics in metrics_dict["import_from_metric_hub"].items():
+                for metric in metrics:
+                    metrics_dict[metric] = ConfigLoader.get_metric(metric, app_id)
+            metrics_dict.pop("import_from_metric_hub")
+
+        if "import_from_metric_hub" in target_dict["data_sources"].keys():
+            for app_id, data_sources in target_dict["data_sources"][
+                "import_from_metric_hub"
+            ].items():
+                for data_source in data_sources:
+                    target_dict["data_sources"][data_source] = ConfigLoader.get_data_source(
+                        data_source, app_id
+                    )
+
         Metric_list = []
         for key, value in metrics_dict.items():
-            data_source = target_dict["data_sources"][value["data_source"]]
-            Metric_list.append(
-                Metric(
-                    name=key,
-                    data_source=DataSource(
-                        name=value["data_source"], from_expr=data_source["from_expression"]
-                    ),
-                    select_expr=ConfigLoader.configs.get_env()
-                    .from_string(value["select_expression"])
-                    .render(),
+            if isinstance(value, Metric):
+                Metric_list.append(value)
+            else:
+                data_source = target_dict["data_sources"][value["data_source"]]
+                Metric_list.append(
+                    Metric(
+                        name=key,
+                        data_source=DataSource(
+                            name=value["data_source"], from_expr=data_source["from_expression"]
+                        ),
+                        select_expr=ConfigLoader.configs.get_env()
+                        .from_string(value["select_expression"])
+                        .render(),
+                    )
                 )
-            )
 
         return Metric_list
 
