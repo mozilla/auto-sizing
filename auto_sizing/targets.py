@@ -1,4 +1,4 @@
-from typing import List, Dict
+from typing import List, Dict, Tuple, Optional
 from pathlib import Path
 import toml
 from datetime import datetime
@@ -19,8 +19,14 @@ from .errors import (
 class SegmentsList:
     """Builds list of Segments from list of dictionaries"""
 
-    def from_list(self, target_list: List[Dict]) -> List[Segment]:
-        return self._make_desktop_targets(target_list)
+    def from_repo(self, target_list: Dict, app_id: str) -> List[Segment]:
+
+        if app_id == "firefox_desktop":
+            return self._make_desktop_targets(target_list)
+        elif app_id == "firefox_ios":
+            return self._make_ios_targets(target_list)
+        elif app_id == "fenix":
+            return self._make_fenix_targets(target_list)
 
     def from_file(self, target_dict: Dict, path: str) -> List[Segment]:
 
@@ -69,24 +75,25 @@ class SegmentsList:
 
         return Segment_list
 
-    def _make_desktop_targets(self, target_list: List[Dict[str, str]]) -> List[Segment]:
+    def _make_desktop_targets(self, target: Dict[str, str]) -> List[Segment]:
 
         clients_daily = ConfigLoader.get_segment_data_source("clients_daily", "firefox_desktop")
-        Segment_list = []
 
-        for recipe in target_list:
-            Segment_list.append(
-                Segment(
-                    name="",
-                    data_source=clients_daily,
-                    select_expr=self._target_to_sql(recipe),
-                )
+        clients_daily_sql, client_type = self._desktop_sql(target)
+        Segment_list = []
+        Segment_list.append(
+            Segment(
+                name="clients_daily_filter",
+                data_source=clients_daily,
+                select_expr=clients_daily_sql,
             )
+        )
+        Segment_list.append(client_type)
 
         return Segment_list
 
-    def _target_to_sql(self, recipe: str) -> str:
-        return """
+    def _desktop_sql(self, recipe: Dict) -> Tuple[str, Segment]:
+        clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
         (normalized_channel = {channel}) AND
@@ -100,6 +107,131 @@ class SegmentsList:
             locale=recipe["locale"],
             country=recipe["country"],
         )
+        if recipe["user_type"] == "new":
+            client_type = ConfigLoader.get_segment("new_or_resurrected_v3", "firefox_desktop")
+        elif recipe["user_type"] == "existing":
+            client_type = ConfigLoader.get_segment("regular_users_v3", "firefox_desktop")
+        return clients_daily_sql, client_type
+
+    def _make_ios_targets(self, target: Dict[str, str]) -> List[Segment]:
+
+        clients_daily = SegmentDataSource(
+            name="clients_daily", from_expr="mozdata.org_mozilla_ios_firefox.baseline_clients_daily"
+        )
+
+        clients_last_seen = SegmentDataSource(
+            name="clients_last_seen",
+            from_expr="""
+            (SELECT
+                BIT_COUNT(days_seen_bits & 0x0FFFFFFE) >= 14 AS is_regular_user_v3,
+                days_seen_bits & 0x0FFFFFFE = 0 AS is_new_or_resurrected_v3,
+                submission_date,
+                client_id
+            FROM
+                mozdata.org_mozilla_ios_firefox.baseline_clients_last_seen)
+            """,
+        )
+
+        clients_daily_sql, clients_last_seen_sql = self._ios_sql(target)
+        Segment_list = []
+        Segment_list.append(
+            Segment(
+                name="clients_daily_filter",
+                data_source=clients_daily,
+                select_expr=clients_daily_sql,
+            )
+        )
+        Segment_list.append(
+            Segment(
+                name="clients_last_seen_filter",
+                data_source=clients_last_seen,
+                select_expr=clients_last_seen_sql,
+            )
+        )
+
+        return Segment_list
+
+    def _ios_sql(self, recipe: Dict) -> Tuple[str, str]:
+        clients_daily_sql = """
+        COALESCE(LOGICAL_OR(
+        (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
+        (normalized_channel = {channel}) AND
+        (locale in {locale}) AND
+        (country = {country})
+        )
+        )
+        """.format(
+            version=recipe["minimum_version"],
+            channel=recipe["release_channel"],
+            locale=recipe["locale"],
+            country=recipe["country"],
+        )
+        if recipe["user_type"] == "new":
+            clients_last_seen_sql = "LOGICAL_OR(COALESCE(is_new_or_resurrected_v3, TRUE))"
+        elif recipe["user_type"] == "existing":
+            clients_last_seen_sql = '{{agg_any("is_regular_user_v3")}}'
+
+        return clients_daily_sql, clients_last_seen_sql
+
+    def _make_fenix_targets(self, target: Dict[str, str]) -> List[Segment]:
+
+        clients_daily = SegmentDataSource(
+            name="clients_daily", from_expr="mozdata.org_mozilla_fenix.baseline_clients_daily"
+        )
+
+        clients_last_seen = SegmentDataSource(
+            name="clients_last_seen",
+            from_expr="""
+            (SELECT
+                BIT_COUNT(days_seen_bits & 0x0FFFFFFE) >= 14 AS is_regular_user_v3,
+                days_seen_bits & 0x0FFFFFFE = 0 AS is_new_or_resurrected_v3,
+                submission_date,
+                client_id
+            FROM
+                mozdata.org_mozilla_fenix.baseline_clients_last_seen)
+            """,
+        )
+
+        clients_daily_sql, clients_last_seen_sql = self._fenix_sql(target)
+        Segment_list = []
+        Segment_list.append(
+            Segment(
+                name="clients_daily_filter",
+                data_source=clients_daily,
+                select_expr=clients_daily_sql,
+            )
+        )
+        Segment_list.append(
+            Segment(
+                name="clients_last_seen_filter",
+                data_source=clients_last_seen,
+                select_expr=clients_last_seen_sql,
+            )
+        )
+
+        return Segment_list
+
+    def _fenix_sql(self, recipe: Dict) -> Tuple[str, str]:
+        clients_daily_sql = """
+        COALESCE(LOGICAL_OR(
+        (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
+        (normalized_channel = {channel}) AND
+        (locale in {locale}) AND
+        (country = {country})
+        )
+        )
+        """.format(
+            version=recipe["minimum_version"],
+            channel=recipe["release_channel"],
+            locale=recipe["locale"],
+            country=recipe["country"],
+        )
+        if recipe["user_type"] == "new":
+            clients_last_seen_sql = "LOGICAL_OR(COALESCE(is_new_or_resurrected_v3, TRUE))"
+        elif recipe["user_type"] == "existing":
+            clients_last_seen_sql = '{{agg_any("is_regular_user_v3")}}'
+
+        return clients_daily_sql, clients_last_seen_sql
 
 
 @attr.s(auto_attribs=True)
@@ -148,6 +280,16 @@ class MetricsLists:
 
         return Metric_list
 
+    def from_repo(self, target_dict: Dict, app_id: str) -> List[Metric]:
+
+        metric_names = target_dict["metrics"][app_id]
+        Metric_list = []
+
+        for metric in metric_names:
+            Metric_list.append(ConfigLoader.get_metric(metric, app_id))
+
+        return Metric_list
+
 
 @attr.s(auto_attribs=True)
 class SizingConfiguration:
@@ -158,7 +300,7 @@ class SizingConfiguration:
     num_dates_enrollment: int
     analysis_length: int
     parameters: List[Dict]
-    config_file: str
+    config_file: Optional[str] = ""
 
 
 @attr.s(auto_attribs=True)
@@ -173,14 +315,12 @@ class SizingCollection:
     metrics_list = MetricsLists()
 
     @classmethod
-    def from_repo(cls, app_id: str = "firefox_desktop") -> "SizingCollection":
+    def from_repo(
+        cls, target: Dict, jobs_dict: Dict, app_id: str = "firefox_desktop"
+    ) -> "SizingCollection":
 
-        jobs_dict = toml.load(cls.toml_path)
-        target_list = dict_combinations(jobs_dict, "targets")
-        segments_list = cls.segments_list.from_list(target_list)
-
-        metric_names_list = jobs_dict["metrics"][app_id]
-        metric_list = [ConfigLoader.get_metric(metric, app_id) for metric in metric_names_list]
+        segments_list = cls.segments_list.from_repo(target, app_id)
+        metric_list = cls.metrics_list.from_repo(jobs_dict, app_id)
 
         parameters_list = dict_combinations(jobs_dict, "parameters")
 

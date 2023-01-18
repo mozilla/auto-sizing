@@ -2,6 +2,8 @@ import attr
 from datetime import datetime, timedelta
 from typing import Optional, Type, Callable, Iterable, Mapping, TextIO, Protocol, Union
 import logging
+import toml
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -10,6 +12,7 @@ from .size_calculation import SizeCalculation
 from .logging import LogConfiguration
 from .targets import SizingCollection, SizingConfiguration, MetricsLists
 from .errors import NoConfigFileException
+from .utils import dict_combinations
 import pytz
 import click
 import sys
@@ -68,6 +71,7 @@ class AnalysisExecutor:
     bucket: str
     target_slug: Optional[str]
     configuration_file: Optional[TextIO] = attr.ib(None)
+    toml_path = Path(__file__).parent / "data/target_lists.toml"
     app_id: str = "firefox_desktop"
     run_preset_jobs: bool = False
 
@@ -93,19 +97,30 @@ class AnalysisExecutor:
 
     def _target_list_to_analyze(
         self, target_collection: SizingCollection
-    ) -> Iterable[SizingCollection]:
+    ) -> Iterable[SizingConfiguration]:
         if self.configuration_file:
-            target_list = target_collection.from_file(self.configuration_file)
-            return self._target_list_to_sizingconfigurations_file(target_list)
+
+            sizing_job = target_collection.from_file(self.configuration_file)
+            return self._target_list_to_sizingconfigurations_file(sizing_job)
+
         elif self.run_preset_jobs:
-            target_list = target_collection.from_repo(app_id=self.app_id)
-            return self._target_list_to_sizingconfigurations_repo(target_list)
+            jobs_dict = toml.load(self.toml_path)
+            target_list = dict_combinations(jobs_dict, "targets")
+            sizing_collections = []
+
+            for target in target_list:
+                sizing_collections.append(
+                    target_collection.from_repo(target, jobs_dict, app_id=self.app_id)
+                )
+
+            return self._target_list_to_sizingconfigurations_repo(sizing_collections)
+
         else:
             raise NoConfigFileException
 
     def _target_list_to_sizingconfigurations_file(
         self,
-        target_list: Iterable[SizingCollection],
+        target_list: SizingCollection,
     ) -> Iterable[SizingConfiguration]:
 
         configs = [
@@ -128,18 +143,19 @@ class AnalysisExecutor:
         target_list: Iterable[SizingCollection],
     ) -> Iterable[SizingConfiguration]:
         configs = []
-
-        for target in target_list.sizing_targets:
+        i = 0
+        for target in target_list:
             config = SizingConfiguration(
-                target,
-                target_slug=hash_ish(target.select_expr),
-                metric_list=target_list.sizing_metrics,
-                start_date=target_list.sizing_dates["start_date"],
-                num_dates_enrollment=target_list.sizing_dates["num_dates_enrollment"],
-                analysis_length=target_list.sizing_dates["analysis_length"],
-                parameters=target_list.sizing_parameters,
+                target.sizing_targets,
+                target_slug=f"iter_{i}",
+                metric_list=target.sizing_metrics,
+                start_date=target.sizing_dates["start_date"],
+                num_dates_enrollment=target.sizing_dates["num_dates_enrollment"],
+                analysis_length=target.sizing_dates["analysis_length"],
+                parameters=target.sizing_parameters,
             )
             configs.append(config)
+            i += 1
 
         return configs
 
@@ -236,7 +252,7 @@ def run(
         dataset_id=dataset_id,
         bucket=bucket,
         configuration_file=config_file if config_file else None,
-        run_preset_jobs=run_presets
+        run_preset_jobs=run_presets,
     )
 
     success = analysis_executor.execute(
