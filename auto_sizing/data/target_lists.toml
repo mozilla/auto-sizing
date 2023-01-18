@@ -15,5 +15,9 @@ firefox_desktop = [
     "uri_count",
     "search_count",
     "ad_clicks",
-    "qualified_cumulative_days_of_use",
+    "days_of_use",
 ]
+
+fenix = ["uri_count", "active_hours", "days_of_use"]
+
+firefox_ios = ["active_hours", "days_of_use", "search_count", "ad_clicks"]
