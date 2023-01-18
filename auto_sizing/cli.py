@@ -9,6 +9,7 @@ from mozanalysis.utils import hash_ish
 from .size_calculation import SizeCalculation
 from .logging import LogConfiguration
 from .targets import SizingCollection, SizingConfiguration, MetricsLists
+from .errors import NoConfigFileException
 import pytz
 import click
 import sys
@@ -68,6 +69,7 @@ class AnalysisExecutor:
     target_slug: Optional[str]
     configuration_file: Optional[TextIO] = attr.ib(None)
     app_id: str = "firefox_desktop"
+    run_preset_jobs: bool = False
 
     @staticmethod
     def _today() -> datetime:
@@ -95,9 +97,11 @@ class AnalysisExecutor:
         if self.configuration_file:
             target_list = target_collection.from_file(self.configuration_file)
             return self._target_list_to_sizingconfigurations_file(target_list)
-        else:
+        elif self.run_preset_jobs:
             target_list = target_collection.from_repo(app_id=self.app_id)
             return self._target_list_to_sizingconfigurations_repo(target_list)
+        else:
+            raise NoConfigFileException
 
     def _target_list_to_sizingconfigurations_file(
         self,
@@ -205,6 +209,7 @@ sizing_name_option = click.option(
 config_file_option = click.option("--local_config", "config_file", type=click.File("rt"))
 bucket_option = click.option("--bucket", help="GCS bucket to write to", required=False)
 app_id_option = click.option("--app_id", "--app_name", help="Firefox app name")
+run_presets_option = click.option("--run_presets", hidden=True, is_flag=True, default=False)
 
 
 @cli.command()
@@ -213,6 +218,7 @@ app_id_option = click.option("--app_id", "--app_name", help="Firefox app name")
 @dataset_id_option
 @bucket_option
 @config_file_option
+@run_presets_option
 @click.pass_context
 def run(
     ctx,
@@ -221,6 +227,7 @@ def run(
     dataset_id,
     bucket,
     config_file,
+    run_presets,
 ):
     """Runs analysis for the provided date."""
     analysis_executor = AnalysisExecutor(
@@ -229,13 +236,11 @@ def run(
         dataset_id=dataset_id,
         bucket=bucket,
         configuration_file=config_file if config_file else None,
+        run_preset_jobs=run_presets
     )
 
-    try:
-        success = analysis_executor.execute(
-            strategy=SerialExecutorStrategy(project_id, dataset_id, bucket),
-        )
-    except Exception as e:
-        print(e.with_traceback())
+    success = analysis_executor.execute(
+        strategy=SerialExecutorStrategy(project_id, dataset_id, bucket),
+    )
 
     sys.exit(0 if success else 1)

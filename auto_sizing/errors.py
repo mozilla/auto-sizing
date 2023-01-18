@@ -28,3 +28,8 @@ class DataSourcesTagNotFoundException(ValidationException):
 class SegmentDataSourcesTagNotFoundException(ValidationException):
     def __init__(self, path, message="No `segments.data_sources` tag found in config file."):
         super().__init__(f"{path} -> {message}")
+
+
+class NoConfigFileException(ValidationException):
+    def __init__(self, message="Provide a TOML config file."):
+        super().__init__(f"{message}")
