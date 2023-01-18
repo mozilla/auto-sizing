@@ -12,4 +12,4 @@ COPY . .
 
 RUN python -m pip install --no-cache-dir .
 
-ENTRYPOINT ["auto-sizing"]
+ENTRYPOINT ["auto_sizing"]
