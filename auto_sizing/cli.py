@@ -3,15 +3,15 @@ from datetime import datetime, timedelta
 from typing import Optional, Type, Callable, Iterable, Mapping, TextIO, Protocol, Union
 import logging
 import toml
+import json
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 from jetstream.argo import submit_workflow
-from mozanalysis.utils import hash_ish
 from .size_calculation import SizeCalculation
 from .logging import LogConfiguration
-from .targets import SizingCollection, SizingConfiguration, MetricsLists
+from .targets import SizingCollection, SizingConfiguration
 from .errors import NoConfigFileException
 from .utils import dict_combinations
 import pytz
@@ -39,6 +39,7 @@ class ExecutorStrategy(Protocol):
         configuration_map: Optional[Mapping[str, TextIO]] = None,
     ) -> bool:
         ...
+
 
 @attr.s(auto_attribs=True)
 class ArgoExecutorStrategy:
@@ -73,17 +74,13 @@ class ArgoExecutorStrategy:
         #     {"slug": slug, "dates": dates} for slug, dates in experiments_config.items()
         # ]
 
-        targets_config_list = [
-            target_slug for target_slug in worklist
-        ]
-
         return submit_workflow(
             project_id=self.project_id,
             zone=self.zone,
             cluster_id=self.cluster_id,
             workflow_file=self.RUN_WORKFLOW,
             parameters={
-                "targets": targets_config_list,
+                "targets": worklist,
                 "project_id": self.project_id,
                 "dataset_id": self.dataset_id,
                 "bucket": self.bucket,
@@ -123,11 +120,14 @@ class AnalysisExecutor:
     project_id: str
     dataset_id: str
     bucket: str
-    target_slug: Optional[str]
     configuration_file: Optional[TextIO] = attr.ib(None)
-    toml_path = Path(__file__).parent / "data/target_lists.toml"
-    app_id: str = "firefox_desktop"
-    run_preset_jobs: bool = False
+    target_slug: Optional[str] = attr.ib(None)
+    run_preset_jobs: Optional[bool] = False
+    refresh_manifest: Optional[bool] = False
+
+    DATA_DIR = Path(__file__).parent / "data"
+    RUN_MANIFEST = DATA_DIR / "manifest.toml"
+    TARGET_SETTINGS = DATA_DIR / "target_lists.toml"
 
     @staticmethod
     def _today() -> datetime:
@@ -155,24 +155,49 @@ class AnalysisExecutor:
         if self.configuration_file:
 
             sizing_job = target_collection.from_file(self.configuration_file)
-            return self._target_list_to_sizingconfigurations_file(sizing_job)
+            return self._target_to_sizingconfigurations_file(sizing_job)
 
-        elif self.run_preset_jobs:
-            jobs_dict = toml.load(self.toml_path)
-            target_list = dict_combinations(jobs_dict, "targets")
-            sizing_collections = []
+        elif self.run_preset_jobs and self.target_slug:
 
-            for target in target_list:
-                sizing_collections.append(
-                    target_collection.from_repo(target, jobs_dict, app_id=self.app_id)
-                )
+            jobs_manifest = toml.load(self.RUN_MANIFEST)
+            job_target = jobs_manifest[self.target_slug]
+            jobs_dict = toml.load(self.TARGET_SETTINGS)
 
-            return self._target_list_to_sizingconfigurations_repo(sizing_collections)
+            sizing_collections = target_collection.from_repo(
+                json.loads(job_target["target_recipe"]), jobs_dict, app_id=job_target["app_id"]
+            )
+
+            return self._target_to_sizingconfigurations_repo(sizing_collections)
+
+        elif self.run_preset_jobs and not self.target_slug:
+            if self.refresh_manifest:
+                jobs_dict = toml.load(self.TARGET_SETTINGS)
+                target_list = dict_combinations(jobs_dict, "targets")
+                jobs_manifest = {}
+
+                recipe_num = 0
+                for app_id in ["firefox_desktop", "firefox_ios", "fenix"]:
+                    for target in target_list:
+                        jobs_manifest[f"target_{recipe_num}"] = {
+                            "app_id": app_id,
+                            "target_recipe": json.dumps(target),
+                        }
+                        recipe_num += 1
+                with open(self.RUN_MANIFEST, "w") as f:
+                    toml.dump(jobs_manifest, f)
+
+                worklist = list(jobs_manifest.keys())
+
+            else:
+                jobs_manifest = toml.load(self.RUN_MANIFEST)
+                worklist = list(jobs_manifest.keys())
+
+            return worklist
 
         else:
             raise NoConfigFileException
 
-    def _target_list_to_sizingconfigurations_file(
+    def _target_to_sizingconfigurations_file(
         self,
         target_list: SizingCollection,
     ) -> Iterable[SizingConfiguration]:
@@ -192,26 +217,21 @@ class AnalysisExecutor:
 
         return configs
 
-    def _target_list_to_sizingconfigurations_repo(
+    def _target_to_sizingconfigurations_repo(
         self,
-        target_list: Iterable[SizingCollection],
-    ) -> Iterable[SizingConfiguration]:
-        configs = []
-        i = 0
-        for target in target_list:
-            config = SizingConfiguration(
-                target.sizing_targets,
-                target_slug=f"iter_{i}",
-                metric_list=target.sizing_metrics,
-                start_date=target.sizing_dates["start_date"],
-                num_dates_enrollment=target.sizing_dates["num_dates_enrollment"],
-                analysis_length=target.sizing_dates["analysis_length"],
-                parameters=target.sizing_parameters,
-            )
-            configs.append(config)
-            i += 1
+        target: SizingCollection,
+    ) -> SizingConfiguration:
+        config = SizingConfiguration(
+            target.sizing_targets,
+            target_slug=self.target_slug,
+            metric_list=target.sizing_metrics,
+            start_date=target.sizing_dates["start_date"],
+            num_dates_enrollment=target.sizing_dates["num_dates_enrollment"],
+            analysis_length=target.sizing_dates["analysis_length"],
+            parameters=target.sizing_parameters,
+        )
 
-        return configs
+        return config
 
 
 log_project_id_option = click.option(
@@ -312,6 +332,7 @@ cluster_cert_option = click.option(
     help="Kubernetes cluster certificate used for authenticating to the cluster",
 )
 
+
 @cli.command()
 @sizing_name_option
 @project_id_option
@@ -384,4 +405,5 @@ def run_argo(
         dataset_id=dataset_id,
         bucket=bucket,
         target_slugs=[target_slug] if target_slug else All,
+        run_preset_jobs=True,
     ).execute(strategy=strategy)

@@ -96,9 +96,9 @@ class SegmentsList:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
-        (normalized_channel = {channel}) AND
+        (normalized_channel = '{channel}') AND
         (locale in {locale}) AND
-        (country = {country})
+        (country = '{country}')
         )
         )
         """.format(
@@ -155,9 +155,9 @@ class SegmentsList:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
-        (normalized_channel = {channel}) AND
+        (normalized_channel = '{channel}') AND
         (locale in {locale}) AND
-        (country = {country})
+        (country = '{country}')
         )
         )
         """.format(
@@ -215,9 +215,9 @@ class SegmentsList:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
-        (normalized_channel = {channel}) AND
+        (normalized_channel = '{channel}') AND
         (locale in {locale}) AND
-        (country = {country})
+        (country = '{country}')
         )
         )
         """.format(
@@ -310,7 +310,6 @@ class SizingCollection:
     sizing_metrics: List[Metric] = attr.Factory(list)
     sizing_parameters: List[Dict] = attr.Factory(list)
     sizing_dates: Dict = attr.Factory(dict)
-    toml_path = Path(__file__).parent / "data/target_lists.toml"
     segments_list = SegmentsList()
     metrics_list = MetricsLists()
 
