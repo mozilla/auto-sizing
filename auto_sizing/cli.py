@@ -221,15 +221,17 @@ class AnalysisExecutor:
         self,
         target: SizingCollection,
     ) -> SizingConfiguration:
-        config = SizingConfiguration(
-            target.sizing_targets,
-            target_slug=self.target_slug,
-            metric_list=target.sizing_metrics,
-            start_date=target.sizing_dates["start_date"],
-            num_dates_enrollment=target.sizing_dates["num_dates_enrollment"],
-            analysis_length=target.sizing_dates["analysis_length"],
-            parameters=target.sizing_parameters,
-        )
+        config = [
+            SizingConfiguration(
+                target.sizing_targets,
+                target_slug=self.target_slug,
+                metric_list=target.sizing_metrics,
+                start_date=target.sizing_dates["start_date"],
+                num_dates_enrollment=target.sizing_dates["num_dates_enrollment"],
+                analysis_length=target.sizing_dates["analysis_length"],
+                parameters=target.sizing_parameters,
+            )
+        ]
 
         return config
 
