@@ -296,7 +296,9 @@ dataset_id_option = click.option(
     "--dataset_id", "--dataset-id", help="Dataset to write to", required=True
 )
 sizing_name_option = click.option(
-    "--target_slug", help="Name applied to files and tables", required=True
+    "--target_slug",
+    help="Name for sizing job that is applied to saved files and tables",
+    required=True,
 )
 config_file_option = click.option("--local_config", "config_file", type=click.File("rt"))
 bucket_option = click.option("--bucket", help="GCS bucket to write to", required=False)
@@ -406,6 +408,6 @@ def run_argo(
         project_id=project_id,
         dataset_id=dataset_id,
         bucket=bucket,
-        target_slugs=[target_slug] if target_slug else All,
+        target_slugs=[target_slug] if target_slug else None,
         run_preset_jobs=True,
     ).execute(strategy=strategy)
