@@ -6,8 +6,6 @@ import toml
 import json
 from pathlib import Path
 
-logger = logging.getLogger(__name__)
-
 from jetstream.argo import submit_workflow
 from .size_calculation import SizeCalculation
 from .logging import LogConfiguration
@@ -17,6 +15,8 @@ from .utils import dict_combinations
 import pytz
 import click
 import sys
+
+logger = logging.getLogger(__name__)
 
 
 @attr.s
