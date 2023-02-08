@@ -34,9 +34,6 @@ class SegmentsList:
             raise SegmentsTagNotFoundException(path)
 
         segments_dict = target_dict["segments"]
-        if "data_sources" not in segments_dict.keys():
-            raise SegmentDataSourcesTagNotFoundException(path)
-
         if "import_from_metric_hub" in segments_dict.keys():
             for app_id, segments in segments_dict["import_from_metric_hub"].items():
                 for segment in segments:
@@ -108,9 +105,13 @@ class SegmentsList:
             country=recipe["country"],
         )
         if recipe["user_type"] == "new":
-            client_type = ConfigLoader.get_segment("new_or_resurrected_v3", "firefox_desktop")
+            client_type = ConfigLoader.get_segment(
+                "new_or_resurrected_v3", "firefox_desktop"
+            )  # TODO: change to first seen date
         elif recipe["user_type"] == "existing":
-            client_type = ConfigLoader.get_segment("regular_users_v3", "firefox_desktop")
+            client_type = ConfigLoader.get_segment(
+                "regular_users_v3", "firefox_desktop"
+            )  # TODO: 28 days old at last date of enrollment
         return clients_daily_sql, client_type
 
     def _make_ios_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
@@ -243,8 +244,6 @@ class MetricsLists:
             raise MetricsTagNotFoundException(path)
 
         metrics_dict = target_dict["metrics"]
-        if "data_sources" not in target_dict.keys():
-            raise DataSourcesTagNotFoundException(path)
 
         if "import_from_metric_hub" in metrics_dict.keys():
             for app_id, metrics in metrics_dict["import_from_metric_hub"].items():
