@@ -20,7 +20,6 @@ class SegmentsList:
     """Builds list of Segments from list of dictionaries"""
 
     def from_repo(self, target_list: Dict, app_id: str, start_date: str) -> List[Segment]:
-
         if app_id == "firefox_desktop":
             return self._make_desktop_targets(target_list)
         elif app_id == "firefox_ios":
@@ -29,7 +28,6 @@ class SegmentsList:
             return self._make_fenix_targets(target_list, start_date)
 
     def from_file(self, target_dict: Dict, path: str) -> List[Segment]:
-
         if "segments" not in target_dict.keys():
             raise SegmentsTagNotFoundException(path)
 
@@ -40,7 +38,10 @@ class SegmentsList:
                     segments_dict[segment] = ConfigLoader.get_segment(segment, app_id)
             segments_dict.pop("import_from_metric_hub")
 
-        if "import_from_metric_hub" in segments_dict["data_sources"].keys():
+        if (
+            "data_sources" in segments_dict.keys()
+            and "import_from_metric_hub" in segments_dict["data_sources"].keys()
+        ):
             for app_id, segment_data_sources in segments_dict["data_sources"][
                 "import_from_metric_hub"
             ].items():
@@ -73,7 +74,6 @@ class SegmentsList:
         return Segment_list
 
     def _make_desktop_targets(self, target: Dict[str, str]) -> List[Segment]:
-
         clients_daily = ConfigLoader.get_segment_data_source("clients_daily", "firefox_desktop")
 
         clients_daily_sql, client_type = self._desktop_sql(target)
@@ -115,7 +115,6 @@ class SegmentsList:
         return clients_daily_sql, client_type
 
     def _make_ios_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
-
         clients_daily = SegmentDataSource(
             name="clients_daily", from_expr="mozdata.org_mozilla_ios_firefox.baseline_clients_daily"
         )
@@ -176,7 +175,6 @@ class SegmentsList:
         return clients_daily_sql
 
     def _make_fenix_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
-
         clients_daily = SegmentDataSource(
             name="clients_daily", from_expr="mozdata.org_mozilla_firefox.baseline_clients_daily"
         )
@@ -239,7 +237,6 @@ class SegmentsList:
 @attr.s(auto_attribs=True)
 class MetricsLists:
     def from_file(self, target_dict: Dict, path: str) -> List[Metric]:
-
         if "metrics" not in target_dict.keys():
             raise MetricsTagNotFoundException(path)
 
@@ -251,7 +248,10 @@ class MetricsLists:
                     metrics_dict[metric] = ConfigLoader.get_metric(metric, app_id)
             metrics_dict.pop("import_from_metric_hub")
 
-        if "import_from_metric_hub" in target_dict["data_sources"].keys():
+        if (
+            "data_sources" in target_dict.keys()
+            and "import_from_metric_hub" in target_dict["data_sources"].keys()
+        ):
             for app_id, data_sources in target_dict["data_sources"][
                 "import_from_metric_hub"
             ].items():
@@ -281,7 +281,6 @@ class MetricsLists:
         return Metric_list
 
     def from_repo(self, target_dict: Dict, app_id: str) -> List[Metric]:
-
         metric_names = target_dict["metrics"][app_id]
         Metric_list = []
 
@@ -305,7 +304,6 @@ class SizingConfiguration:
 
 @attr.s(auto_attribs=True)
 class SizingCollection:
-
     sizing_targets: List[Segment] = attr.Factory(list)
     sizing_metrics: List[Metric] = attr.Factory(list)
     sizing_parameters: List[Dict] = attr.Factory(list)
@@ -320,7 +318,6 @@ class SizingCollection:
         jobs_dict: Dict,
         app_id: str = "firefox_desktop",
     ) -> "SizingCollection":
-
         dates_dict = default_dates_dict(datetime.today())
         segments_list = cls.segments_list.from_repo(target, app_id, dates_dict["start_date"])
         metric_list = cls.metrics_list.from_repo(jobs_dict, app_id)
@@ -331,7 +328,6 @@ class SizingCollection:
 
     @classmethod
     def from_file(cls, path: str) -> "SizingCollection":
-
         target_dict = toml.load(path)
 
         segment_list = cls.segments_list.from_file(target_dict, path)
