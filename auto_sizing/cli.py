@@ -1,6 +1,6 @@
 import attr
 from datetime import datetime, timedelta
-from typing import Optional, Type, Callable, Iterable, Mapping, TextIO, Protocol, Union
+from typing import Optional, Type, Callable, Iterable, Mapping, TextIO, Protocol, Union, List
 import logging
 import toml
 import json
@@ -101,16 +101,15 @@ class SerialExecutorStrategy:
 
     def execute(
         self,
-        worklist: Iterable[SizingConfiguration],
+        config: SizingConfiguration,
     ):
         failed = False
-        for config in worklist:
-            try:
-                sizing = self.sizing_class(self.project_id, self.dataset_id, self.bucket, config)
-                sizing.run(datetime.now(tz=pytz.utc).date())
+        try:
+            sizing = self.sizing_class(self.project_id, self.dataset_id, self.bucket, config)
+            sizing.run(datetime.now(tz=pytz.utc).date())
 
-            except Exception as e:
-                failed = True
+        except Exception as e:
+            failed = True
 
         return not failed
 
@@ -145,54 +144,56 @@ class AnalysisExecutor:
     ) -> bool:
         target_collection = SizingCollection()
 
-        configs = self._target_list_to_analyze(target_collection)
+        worklist = self._target_list_to_analyze(target_collection)
 
-        return strategy.execute(configs)
+        return strategy.execute(worklist)
 
     def _target_list_to_analyze(
         self, target_collection: SizingCollection
-    ) -> Iterable[SizingConfiguration]:
+    ) -> Union[SizingConfiguration, List[SizingConfiguration]]:
         if self.configuration_file:
 
             sizing_job = target_collection.from_file(self.configuration_file)
             return self._target_to_sizingconfigurations_file(sizing_job)
 
-        elif self.run_preset_jobs and self.target_slug:
-
-            jobs_manifest = toml.load(self.RUN_MANIFEST)
-            job_target = jobs_manifest[self.target_slug]
+        elif self.run_preset_jobs:
             jobs_dict = toml.load(self.TARGET_SETTINGS)
+            jobs_manifest = toml.load(self.RUN_MANIFEST)
+            if isinstance(self.target_slug, AllType):
+                if self.refresh_manifest:
+                    target_list = dict_combinations(jobs_dict, "targets")
+                    jobs_manifest = {}
 
-            sizing_collections = target_collection.from_repo(
-                json.loads(job_target["target_recipe"]), jobs_dict, app_id=job_target["app_id"]
-            )
-
-            return self._target_to_sizingconfigurations_repo(sizing_collections)
-
-        elif self.run_preset_jobs and not self.target_slug:
-            if self.refresh_manifest:
-                jobs_dict = toml.load(self.TARGET_SETTINGS)
-                target_list = dict_combinations(jobs_dict, "targets")
-                jobs_manifest = {}
-
-                recipe_num = 0
-                for app_id in ["firefox_desktop", "firefox_ios", "fenix"]:
-                    for target in target_list:
-                        jobs_manifest[f"target_{recipe_num}"] = {
-                            "app_id": app_id,
-                            "target_recipe": json.dumps(target),
-                        }
-                        recipe_num += 1
-                with open(self.RUN_MANIFEST, "w") as f:
-                    toml.dump(jobs_manifest, f)
-
-                worklist = list(jobs_manifest.keys())
+                    recipe_num = 0
+                    for app_id in ["firefox_desktop", "firefox_ios", "fenix"]:
+                        for target in target_list:
+                            jobs_manifest[f"target_{recipe_num}"] = {
+                                "app_id": app_id,
+                                "target_recipe": json.dumps(target),
+                            }
+                            recipe_num += 1
+                    with open(self.RUN_MANIFEST, "w") as f:
+                        toml.dump(jobs_manifest, f)
+                worklist = []
+                for target_slug, job_target in jobs_manifest.items():
+                    sizing_collections = target_collection.from_repo(
+                        json.loads(job_target["target_recipe"]),
+                        jobs_dict,
+                        app_id=job_target["app_id"],
+                    )
+                    sizing_config = self._target_to_sizingconfigurations_repo(
+                        sizing_collections, target_slug
+                    )
+                    worklist.append(sizing_config)
+                return worklist
 
             else:
-                jobs_manifest = toml.load(self.RUN_MANIFEST)
-                worklist = list(jobs_manifest.keys())
+                job_target = jobs_manifest[self.target_slug]
+                sizing_collections = target_collection.from_repo(
+                    json.loads(job_target["target_recipe"]), jobs_dict, app_id=job_target["app_id"]
+                )
 
-            return worklist
+                return self._target_to_sizingconfigurations_repo(sizing_collections)
 
         else:
             raise NoConfigFileException
@@ -200,38 +201,33 @@ class AnalysisExecutor:
     def _target_to_sizingconfigurations_file(
         self,
         target_list: SizingCollection,
-    ) -> Iterable[SizingConfiguration]:
+    ) -> SizingConfiguration:
 
-        configs = [
-            SizingConfiguration(
-                target_list.sizing_targets,
-                target_slug=self.target_slug if self.target_slug else "",
-                metric_list=target_list.sizing_metrics,
-                start_date=target_list.sizing_dates["start_date"],
-                num_dates_enrollment=target_list.sizing_dates["num_dates_enrollment"],
-                analysis_length=target_list.sizing_dates["analysis_length"],
-                parameters=target_list.sizing_parameters,
-                config_file=self.configuration_file,
-            )
-        ]
+        config = SizingConfiguration(
+            target_list.sizing_targets,
+            target_slug=self.target_slug if self.target_slug else "",
+            metric_list=target_list.sizing_metrics,
+            start_date=target_list.sizing_dates["start_date"],
+            num_dates_enrollment=target_list.sizing_dates["num_dates_enrollment"],
+            analysis_length=target_list.sizing_dates["analysis_length"],
+            parameters=target_list.sizing_parameters,
+            config_file=self.configuration_file,
+        )
 
-        return configs
+        return config
 
     def _target_to_sizingconfigurations_repo(
-        self,
-        target: SizingCollection,
+        self, target: SizingCollection, target_slug: Optional[str] = ""
     ) -> SizingConfiguration:
-        config = [
-            SizingConfiguration(
-                target.sizing_targets,
-                target_slug=self.target_slug,
-                metric_list=target.sizing_metrics,
-                start_date=target.sizing_dates["start_date"],
-                num_dates_enrollment=target.sizing_dates["num_dates_enrollment"],
-                analysis_length=target.sizing_dates["analysis_length"],
-                parameters=target.sizing_parameters,
-            )
-        ]
+        config = SizingConfiguration(
+            target.sizing_targets,
+            target_slug=target_slug if target_slug else self.target_slug,
+            metric_list=target.sizing_metrics,
+            start_date=target.sizing_dates["start_date"],
+            num_dates_enrollment=target.sizing_dates["num_dates_enrollment"],
+            analysis_length=target.sizing_dates["analysis_length"],
+            parameters=target.sizing_parameters,
+        )
 
         return config
 
@@ -295,16 +291,25 @@ project_id_option = click.option(
 dataset_id_option = click.option(
     "--dataset_id", "--dataset-id", help="Dataset to write to", required=True
 )
-sizing_name_option = click.option(
+target_slug_option = click.option(
     "--target_slug",
-    help="Name for sizing job that is applied to saved files and tables",
-    required=True,
+    help="Slug for sizing job that is applied to saved files and tables",
+    required=False,
 )
 config_file_option = click.option("--local_config", "config_file", type=click.File("rt"))
 bucket_option = click.option("--bucket", help="GCS bucket to write to", required=False)
-app_id_option = click.option("--app_id", "--app_name", help="Firefox app name")
-run_presets_option = click.option("--run_presets", hidden=True, is_flag=True, default=False)
-
+run_presets_option = click.option(
+    "--run_presets",
+    help="Run auto sizing jobs defined in the manifest TOML",
+    is_flag=True,
+    default=False,
+)
+refresh_manifest_option = click.option(
+    "--refresh_manifest",
+    help="Refresh the auto sizing jobs manifest based on the targets list TOML",
+    is_flag=True,
+    default=False,
+)
 
 zone_option = click.option(
     "--zone", default="us-central1-a", help="Kubernetes cluster zone", required=True
@@ -338,7 +343,7 @@ cluster_cert_option = click.option(
 
 
 @cli.command()
-@sizing_name_option
+@target_slug_option
 @project_id_option
 @dataset_id_option
 @bucket_option
@@ -374,13 +379,14 @@ def run(
 @cli.command()
 @project_id_option
 @dataset_id_option
-@sizing_name_option
+@target_slug_option
 @bucket_option
 @zone_option
 @cluster_id_option
 @monitor_status_option
 @cluster_ip_option
 @cluster_cert_option
+@refresh_manifest_option
 def run_argo(
     project_id,
     dataset_id,
@@ -391,6 +397,7 @@ def run_argo(
     monitor_status,
     cluster_ip,
     cluster_cert,
+    refresh_manifest,
 ):
     """Runs analysis for the provided date using Argo."""
     strategy = ArgoExecutorStrategy(
@@ -408,6 +415,7 @@ def run_argo(
         project_id=project_id,
         dataset_id=dataset_id,
         bucket=bucket,
-        target_slugs=[target_slug] if target_slug else None,
+        target_slug=target_slug if target_slug else All,
         run_preset_jobs=True,
+        refresh_manifest=refresh_manifest,
     ).execute(strategy=strategy)
