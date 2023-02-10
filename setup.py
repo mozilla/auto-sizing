@@ -37,13 +37,13 @@ setup(
     url="https://github.com/m-d-bowerman/auto-sizing",
     packages=[
         "auto_sizing",
-        "auto_sizing.data",
         "auto_sizing.logging",
         "auto_sizing.tests",
         "auto_sizing.workflows",
     ],
     package_data={
-        "auto_sizing": ["../*.toml"],
+        "auto_sizing.workflows": ["*.yaml"],
+        "auto_sizing": ["data/*", "../*.toml"],
     },
     install_requires=[
         "attrs",
