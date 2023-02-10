@@ -287,6 +287,7 @@ dataset_id_option = click.option(
 )
 target_slug_option = click.option(
     "--target_slug",
+    "--target-slug",
     help="Slug for sizing job that is applied to saved files and tables",
     required=False,
 )
