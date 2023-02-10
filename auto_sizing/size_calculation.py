@@ -8,6 +8,7 @@ from mozanalysis.frequentist_stats.sample_size import (
 import auto_sizing.errors as errors
 from auto_sizing.export_json import export_sample_size_json
 from auto_sizing.targets import SizingConfiguration
+from auto_sizing.utils import delete_bq_table
 
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -56,7 +57,6 @@ class SizeCalculation:
         time_limits: TimeLimits,
         ht: HistoricalTarget,
     ) -> Tuple[DataFrame, str]:
-
         targets_sql = ht.build_targets_query(
             time_limits=time_limits,
             target_list=self.config.target_list,
@@ -88,15 +88,14 @@ class SizeCalculation:
             )
         )
 
-        return (
-            self.bigquerycontext.run_query(metrics_sql, metrics_table_name).to_dataframe(),
-            metrics_table_name,
-        )
+        df = self.bigquerycontext.run_query(metrics_sql, metrics_table_name).to_dataframe()
+        delete_bq_table(self.bigquerycontext.fully_qualify_table_name(targets_table_name))
+
+        return df, metrics_table_name
 
     def calculate_sample_sizes(
         self, metrics_table: DataFrame, parameters: Dict[str, float]
     ) -> Dict[str, int]:
-
         res = z_or_t_ind_sample_size_calc(
             df=metrics_table,
             metrics_list=self.config.metric_list,
@@ -116,9 +115,7 @@ class SizeCalculation:
         return result_dict
 
     def publish_results(self, result_dict: Dict[str, float]) -> None:
-
         if self.config.config_file and not self.bucket:
-
             path = Path(self.config.config_file.name).parent / f"{self.config.target_slug}.json"
             path.write_text(json.dumps(result_dict))
             print(f"Results saved at {path}")
@@ -132,7 +129,6 @@ class SizeCalculation:
         self,
         current_date: datetime,
     ) -> None:
-
         time_limits = self._validate_requested_timelimits(current_date)
 
         ht = HistoricalTarget(
@@ -146,6 +142,10 @@ class SizeCalculation:
         print(f"Metrics table saved at {metrics_table_name}")
 
         results_combined = {}
+
+        if len(metrics_table) == 0:
+            print("No clients satisfied targeting.")
+            return 0
 
         for parameters in self.config.parameters:
             res = self.calculate_sample_sizes(metrics_table=metrics_table, parameters=parameters)

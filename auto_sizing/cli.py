@@ -59,11 +59,7 @@ class ArgoExecutorStrategy:
     def execute(
         self,
         worklist: Iterable[SizingConfiguration],
-        configuration_map: Optional[Mapping[str, TextIO]] = None,
     ):
-        if configuration_map is not None:
-            raise Exception("Custom configurations are not supported when running with Argo")
-
         # experiments_config: Dict[str, List[str]] = {}
         # for config in worklist:
         #     experiments_config.setdefault(config.experiment.normandy_slug, []).append(
@@ -152,7 +148,6 @@ class AnalysisExecutor:
         self, target_collection: SizingCollection
     ) -> Union[SizingConfiguration, List[SizingConfiguration]]:
         if self.configuration_file:
-
             sizing_job = target_collection.from_file(self.configuration_file)
             return self._target_to_sizingconfigurations_file(sizing_job)
 
@@ -202,7 +197,6 @@ class AnalysisExecutor:
         self,
         target_list: SizingCollection,
     ) -> SizingConfiguration:
-
         config = SizingConfiguration(
             target_list.sizing_targets,
             target_slug=self.target_slug if self.target_slug else "",
@@ -296,7 +290,12 @@ target_slug_option = click.option(
     help="Slug for sizing job that is applied to saved files and tables",
     required=False,
 )
-config_file_option = click.option("--local_config", "config_file", type=click.File("rt"))
+config_file_option = click.option(
+    "--local_config",
+    "config_file",
+    help="Path to local config TOML file that contains settings for sizing job",
+    type=click.File("rt"),
+)
 bucket_option = click.option("--bucket", help="GCS bucket to write to", required=False)
 run_presets_option = click.option(
     "--run_presets",
@@ -360,6 +359,9 @@ def run(
     run_presets,
 ):
     """Runs analysis for the provided date."""
+    if not run_presets and not config_file:
+        raise Exception("Either provide a config file or run auto sizing presets.")
+
     analysis_executor = AnalysisExecutor(
         target_slug=target_slug,
         project_id=project_id,
@@ -400,6 +402,9 @@ def run_argo(
     refresh_manifest,
 ):
     """Runs analysis for the provided date using Argo."""
+    if not bucket:
+        raise Exception("A GCS bucket must be provided to save results from runs using Argo.")
+
     strategy = ArgoExecutorStrategy(
         project_id=project_id,
         dataset_id=dataset_id,
