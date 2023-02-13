@@ -94,7 +94,7 @@ class SegmentsList:
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
         (normalized_channel = '{channel}') AND
-        (locale in {locale}) AND
+        (UPPER(locale) in {locale}) AND
         (country = '{country}')
         )
         )
@@ -161,14 +161,14 @@ class SegmentsList:
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
         (normalized_channel = '{channel}') AND
-        (locale in {locale}) AND
+        (UPPER(locale) in {locale}) AND
         (country = '{country}')
         )
         )
         """.format(
             version=recipe["minimum_version"],
             channel=recipe["release_channel"],
-            locale=recipe["locale"].replace("EN-", "en-"),
+            locale=recipe["locale"],
             country=recipe["country"],
         )
 
@@ -220,14 +220,14 @@ class SegmentsList:
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
         (normalized_channel = '{channel}') AND
-        (locale in {locale}) AND
+        (UPPER(locale) in {locale}) AND
         (country = '{country}')
         )
         )
         """.format(
             version=recipe["minimum_version"],
             channel=recipe["release_channel"],
-            locale=recipe["locale"].replace("EN-", "en-"),
+            locale=recipe["locale"],
             country=recipe["country"],
         )
 
