@@ -37,9 +37,13 @@ setup(
     url="https://github.com/m-d-bowerman/auto-sizing",
     packages=[
         "auto_sizing",
+        "auto_sizing.logging",
+        "auto_sizing.tests",
+        "auto_sizing.workflows",
     ],
     package_data={
-        "auto_sizing": ["../*.toml"],
+        "auto_sizing.workflows": ["*.yaml"],
+        "auto_sizing": ["data/*", "../*.toml"],
     },
     install_requires=[
         "attrs",
@@ -55,7 +59,8 @@ setup(
         "grpcio",  # https://github.com/googleapis/google-cloud-python/issues/6259
         "jinja2",
         "mozanalysis",
-        "mozilla-jetstream-config-parser",
+        "mozilla-jetstream",
+        "mozilla-metric-config-parser",
         "pyarrow",
         "pytz",
         "PyYAML",
@@ -77,5 +82,5 @@ setup(
         """,
     # This project does not issue releases, so this number is not meaningful
     # and should not need to change.
-    version="2022.1.0",
+    version="2023.2.0",
 )

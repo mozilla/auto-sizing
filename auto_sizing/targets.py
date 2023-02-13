@@ -19,31 +19,29 @@ from .errors import (
 class SegmentsList:
     """Builds list of Segments from list of dictionaries"""
 
-    def from_repo(self, target_list: Dict, app_id: str) -> List[Segment]:
-
+    def from_repo(self, target_list: Dict, app_id: str, start_date: str) -> List[Segment]:
         if app_id == "firefox_desktop":
             return self._make_desktop_targets(target_list)
         elif app_id == "firefox_ios":
-            return self._make_ios_targets(target_list)
+            return self._make_ios_targets(target_list, start_date)
         elif app_id == "fenix":
-            return self._make_fenix_targets(target_list)
+            return self._make_fenix_targets(target_list, start_date)
 
     def from_file(self, target_dict: Dict, path: str) -> List[Segment]:
-
         if "segments" not in target_dict.keys():
             raise SegmentsTagNotFoundException(path)
 
         segments_dict = target_dict["segments"]
-        if "data_sources" not in segments_dict.keys():
-            raise SegmentDataSourcesTagNotFoundException(path)
-
         if "import_from_metric_hub" in segments_dict.keys():
             for app_id, segments in segments_dict["import_from_metric_hub"].items():
                 for segment in segments:
                     segments_dict[segment] = ConfigLoader.get_segment(segment, app_id)
             segments_dict.pop("import_from_metric_hub")
 
-        if "import_from_metric_hub" in segments_dict["data_sources"].keys():
+        if (
+            "data_sources" in segments_dict.keys()
+            and "import_from_metric_hub" in segments_dict["data_sources"].keys()
+        ):
             for app_id, segment_data_sources in segments_dict["data_sources"][
                 "import_from_metric_hub"
             ].items():
@@ -76,7 +74,6 @@ class SegmentsList:
         return Segment_list
 
     def _make_desktop_targets(self, target: Dict[str, str]) -> List[Segment]:
-
         clients_daily = ConfigLoader.get_segment_data_source("clients_daily", "firefox_desktop")
 
         clients_daily_sql, client_type = self._desktop_sql(target)
@@ -96,9 +93,9 @@ class SegmentsList:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
-        (normalized_channel = {channel}) AND
-        (locale in {locale}) AND
-        (country = {country})
+        (normalized_channel = '{channel}') AND
+        (UPPER(locale) in {locale}) AND
+        (country = '{country}')
         )
         )
         """.format(
@@ -108,31 +105,21 @@ class SegmentsList:
             country=recipe["country"],
         )
         if recipe["user_type"] == "new":
-            client_type = ConfigLoader.get_segment("new_or_resurrected_v3", "firefox_desktop")
+            client_type = ConfigLoader.get_segment(
+                "new_or_resurrected_v3", "firefox_desktop"
+            )  # TODO: change to first seen date
         elif recipe["user_type"] == "existing":
-            client_type = ConfigLoader.get_segment("regular_users_v3", "firefox_desktop")
+            client_type = ConfigLoader.get_segment(
+                "regular_users_v3", "firefox_desktop"
+            )  # TODO: 28 days old at last date of enrollment
         return clients_daily_sql, client_type
 
-    def _make_ios_targets(self, target: Dict[str, str]) -> List[Segment]:
-
+    def _make_ios_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
         clients_daily = SegmentDataSource(
             name="clients_daily", from_expr="mozdata.org_mozilla_ios_firefox.baseline_clients_daily"
         )
+        clients_daily_sql = self._ios_sql(target)
 
-        clients_last_seen = SegmentDataSource(
-            name="clients_last_seen",
-            from_expr="""
-            (SELECT
-                BIT_COUNT(days_seen_bits & 0x0FFFFFFE) >= 14 AS is_regular_user_v3,
-                days_seen_bits & 0x0FFFFFFE = 0 AS is_new_or_resurrected_v3,
-                submission_date,
-                client_id
-            FROM
-                mozdata.org_mozilla_ios_firefox.baseline_clients_last_seen)
-            """,
-        )
-
-        clients_daily_sql, clients_last_seen_sql = self._ios_sql(target)
         Segment_list = []
         Segment_list.append(
             Segment(
@@ -141,13 +128,31 @@ class SegmentsList:
                 select_expr=clients_daily_sql,
             )
         )
-        Segment_list.append(
-            Segment(
-                name="clients_last_seen_filter",
-                data_source=clients_last_seen,
-                select_expr=clients_last_seen_sql,
+
+        if target["user_type"] == "new":
+            baseline_clients_first_seen = SegmentDataSource(
+                name="baseline_clients_first_seen",
+                from_expr="`moz-fx-data-shared-prod.org_mozilla_ios_firefox.baseline_clients_first_seen`",
             )
-        )
+            Segment_list.append(
+                Segment(
+                    name="clients_last_seen_filter",
+                    data_source=baseline_clients_first_seen,
+                    select_expr=f'COALESCE(MIN(first_seen_date)  >= "{start_date}", TRUE)',
+                )
+            )
+        elif target["user_type"] == "existing":
+            baseline_clients_last_seen = SegmentDataSource(
+                name="baseline_clients_last_seen",
+                from_expr="`moz-fx-data-shared-prod.org_mozilla_ios_firefox.baseline_clients_last_seen`",
+            )
+            Segment_list.append(
+                Segment(
+                    name="clients_last_seen_filter",
+                    data_source=baseline_clients_last_seen,
+                    select_expr=f'COALESCE(MIN(first_seen_date)  < "{start_date}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',
+                )
+            )
 
         return Segment_list
 
@@ -155,9 +160,9 @@ class SegmentsList:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
-        (normalized_channel = {channel}) AND
-        (locale in {locale}) AND
-        (country = {country})
+        (normalized_channel = '{channel}') AND
+        (UPPER(locale) in {locale}) AND
+        (country = '{country}')
         )
         )
         """.format(
@@ -166,33 +171,15 @@ class SegmentsList:
             locale=recipe["locale"],
             country=recipe["country"],
         )
-        if recipe["user_type"] == "new":
-            clients_last_seen_sql = "LOGICAL_OR(COALESCE(is_new_or_resurrected_v3, TRUE))"
-        elif recipe["user_type"] == "existing":
-            clients_last_seen_sql = '{{agg_any("is_regular_user_v3")}}'
 
-        return clients_daily_sql, clients_last_seen_sql
+        return clients_daily_sql
 
-    def _make_fenix_targets(self, target: Dict[str, str]) -> List[Segment]:
-
+    def _make_fenix_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
         clients_daily = SegmentDataSource(
-            name="clients_daily", from_expr="mozdata.org_mozilla_fenix.baseline_clients_daily"
+            name="clients_daily", from_expr="mozdata.org_mozilla_firefox.baseline_clients_daily"
         )
 
-        clients_last_seen = SegmentDataSource(
-            name="clients_last_seen",
-            from_expr="""
-            (SELECT
-                BIT_COUNT(days_seen_bits & 0x0FFFFFFE) >= 14 AS is_regular_user_v3,
-                days_seen_bits & 0x0FFFFFFE = 0 AS is_new_or_resurrected_v3,
-                submission_date,
-                client_id
-            FROM
-                mozdata.org_mozilla_fenix.baseline_clients_last_seen)
-            """,
-        )
-
-        clients_daily_sql, clients_last_seen_sql = self._fenix_sql(target)
+        clients_daily_sql = self._fenix_sql(target)
         Segment_list = []
         Segment_list.append(
             Segment(
@@ -201,13 +188,30 @@ class SegmentsList:
                 select_expr=clients_daily_sql,
             )
         )
-        Segment_list.append(
-            Segment(
-                name="clients_last_seen_filter",
-                data_source=clients_last_seen,
-                select_expr=clients_last_seen_sql,
+        if target["user_type"] == "new":
+            baseline_clients_first_seen = SegmentDataSource(
+                name="baseline_clients_first_seen",
+                from_expr="`moz-fx-data-shared-prod.org_mozilla_firefox.baseline_clients_first_seen`",
             )
-        )
+            Segment_list.append(
+                Segment(
+                    name="clients_last_seen_filter",
+                    data_source=baseline_clients_first_seen,
+                    select_expr=f'COALESCE(MIN(first_seen_date)  >= "{start_date}", TRUE)',
+                )
+            )
+        elif target["user_type"] == "existing":
+            baseline_clients_last_seen = SegmentDataSource(
+                name="baseline_clients_last_seen",
+                from_expr="`moz-fx-data-shared-prod.org_mozilla_firefox.baseline_clients_last_seen`",
+            )
+            Segment_list.append(
+                Segment(
+                    name="clients_last_seen_filter",
+                    data_source=baseline_clients_last_seen,
+                    select_expr=f'COALESCE(MIN(first_seen_date)  < "{start_date}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',
+                )
+            )
 
         return Segment_list
 
@@ -215,9 +219,9 @@ class SegmentsList:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
-        (normalized_channel = {channel}) AND
-        (locale in {locale}) AND
-        (country = {country})
+        (normalized_channel = '{channel}') AND
+        (UPPER(locale) in {locale}) AND
+        (country = '{country}')
         )
         )
         """.format(
@@ -226,24 +230,17 @@ class SegmentsList:
             locale=recipe["locale"],
             country=recipe["country"],
         )
-        if recipe["user_type"] == "new":
-            clients_last_seen_sql = "LOGICAL_OR(COALESCE(is_new_or_resurrected_v3, TRUE))"
-        elif recipe["user_type"] == "existing":
-            clients_last_seen_sql = '{{agg_any("is_regular_user_v3")}}'
 
-        return clients_daily_sql, clients_last_seen_sql
+        return clients_daily_sql
 
 
 @attr.s(auto_attribs=True)
 class MetricsLists:
     def from_file(self, target_dict: Dict, path: str) -> List[Metric]:
-
         if "metrics" not in target_dict.keys():
             raise MetricsTagNotFoundException(path)
 
         metrics_dict = target_dict["metrics"]
-        if "data_sources" not in target_dict.keys():
-            raise DataSourcesTagNotFoundException(path)
 
         if "import_from_metric_hub" in metrics_dict.keys():
             for app_id, metrics in metrics_dict["import_from_metric_hub"].items():
@@ -251,7 +248,10 @@ class MetricsLists:
                     metrics_dict[metric] = ConfigLoader.get_metric(metric, app_id)
             metrics_dict.pop("import_from_metric_hub")
 
-        if "import_from_metric_hub" in target_dict["data_sources"].keys():
+        if (
+            "data_sources" in target_dict.keys()
+            and "import_from_metric_hub" in target_dict["data_sources"].keys()
+        ):
             for app_id, data_sources in target_dict["data_sources"][
                 "import_from_metric_hub"
             ].items():
@@ -281,7 +281,6 @@ class MetricsLists:
         return Metric_list
 
     def from_repo(self, target_dict: Dict, app_id: str) -> List[Metric]:
-
         metric_names = target_dict["metrics"][app_id]
         Metric_list = []
 
@@ -305,32 +304,30 @@ class SizingConfiguration:
 
 @attr.s(auto_attribs=True)
 class SizingCollection:
-
     sizing_targets: List[Segment] = attr.Factory(list)
     sizing_metrics: List[Metric] = attr.Factory(list)
     sizing_parameters: List[Dict] = attr.Factory(list)
     sizing_dates: Dict = attr.Factory(dict)
-    toml_path = Path(__file__).parent / "data/target_lists.toml"
     segments_list = SegmentsList()
     metrics_list = MetricsLists()
 
     @classmethod
     def from_repo(
-        cls, target: Dict, jobs_dict: Dict, app_id: str = "firefox_desktop"
+        cls,
+        target: Dict,
+        jobs_dict: Dict,
+        app_id: str = "firefox_desktop",
     ) -> "SizingCollection":
-
-        segments_list = cls.segments_list.from_repo(target, app_id)
+        dates_dict = default_dates_dict(datetime.today())
+        segments_list = cls.segments_list.from_repo(target, app_id, dates_dict["start_date"])
         metric_list = cls.metrics_list.from_repo(jobs_dict, app_id)
 
         parameters_list = dict_combinations(jobs_dict, "parameters")
-
-        dates_dict = default_dates_dict(datetime.today())
 
         return cls(segments_list, metric_list, parameters_list, dates_dict)
 
     @classmethod
     def from_file(cls, path: str) -> "SizingCollection":
-
         target_dict = toml.load(path)
 
         segment_list = cls.segments_list.from_file(target_dict, path)

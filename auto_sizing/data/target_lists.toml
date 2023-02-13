@@ -1,8 +1,8 @@
 [targets]
-minimum_version = ["108", "107", "106", "105", "104"]
-locale = ["(EN-US)", "(EN-US, EN-CA, EN-GB)"]
+minimum_version = ["109", "108", "107", "106", "105"]
+locale = ["('EN-US')", "('EN-US', 'EN-CA', 'EN-GB')"]
+release_channel = ["release"]
 country = ["US"]
-release_channel = ["nightly", "beta", "release"]
 user_type = ["new", "existing"]
 
 [parameters]
@@ -10,14 +10,8 @@ power = [0.8]
 effect_size = [0.005, 0.01, 0.02, 0.05]
 
 [metrics]
-firefox_desktop = [
-    "active_hours",
-    "uri_count",
-    "search_count",
-    "ad_clicks",
-    "days_of_use",
-]
+firefox_desktop = ["active_hours", "search_count", "days_of_use"]
 
-fenix = ["uri_count", "active_hours", "days_of_use"]
+fenix = ["active_hours", "days_of_use", "tagged_search_count"]
 
-firefox_ios = ["active_hours", "days_of_use", "search_count", "ad_clicks"]
+firefox_ios = ["active_hours", "days_of_use", "search_count"]
