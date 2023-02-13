@@ -89,7 +89,9 @@ class SizeCalculation:
         )
 
         df = self.bigquerycontext.run_query(metrics_sql, metrics_table_name).to_dataframe()
-        delete_bq_table(self.bigquerycontext.fully_qualify_table_name(targets_table_name))
+        delete_bq_table(
+            self.bigquerycontext.fully_qualify_table_name(targets_table_name), self.project
+        )
 
         return df, metrics_table_name
 
