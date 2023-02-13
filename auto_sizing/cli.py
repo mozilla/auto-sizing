@@ -5,6 +5,7 @@ import logging
 import toml
 import json
 from pathlib import Path
+from typing import Dict
 
 from jetstream.argo import submit_workflow
 from .size_calculation import SizeCalculation
@@ -70,13 +71,17 @@ class ArgoExecutorStrategy:
         #     {"slug": slug, "dates": dates} for slug, dates in experiments_config.items()
         # ]
 
+        targets_list = [{"slug": config.target_slug} for config in worklist]
+
+        logger.warning(f"{type(worklist)} TARGETS LIST: {targets_list}")
+
         return submit_workflow(
             project_id=self.project_id,
             zone=self.zone,
             cluster_id=self.cluster_id,
             workflow_file=self.RUN_WORKFLOW,
             parameters={
-                "targets": worklist,
+                "targets": targets_list,
                 "project_id": self.project_id,
                 "dataset_id": self.dataset_id,
                 "bucket": self.bucket,
@@ -97,15 +102,17 @@ class SerialExecutorStrategy:
 
     def execute(
         self,
-        config: SizingConfiguration,
+        worklist: List[SizingConfiguration],
     ):
         failed = False
-        try:
-            sizing = self.sizing_class(self.project_id, self.dataset_id, self.bucket, config)
-            sizing.run(datetime.now(tz=pytz.utc).date())
+        for config in worklist:
+            try:
+                sizing = self.sizing_class(self.project_id, self.dataset_id, self.bucket, config)
+                sizing.run(datetime.now(tz=pytz.utc).date())
 
-        except Exception as e:
-            failed = True
+            except Exception as e:
+                logger.exception(str(e), exc_info=e, extra={"target": config.target_slug})
+                failed = True
 
         return not failed
 
@@ -146,7 +153,7 @@ class AnalysisExecutor:
 
     def _target_list_to_analyze(
         self, target_collection: SizingCollection
-    ) -> Union[SizingConfiguration, List[SizingConfiguration]]:
+    ) -> List[SizingConfiguration]:
         if self.configuration_file:
             sizing_job = target_collection.from_file(self.configuration_file)
             return self._target_to_sizingconfigurations_file(sizing_job)
@@ -196,7 +203,7 @@ class AnalysisExecutor:
     def _target_to_sizingconfigurations_file(
         self,
         target_list: SizingCollection,
-    ) -> SizingConfiguration:
+    ) -> List[SizingConfiguration]:
         config = SizingConfiguration(
             target_list.sizing_targets,
             target_slug=self.target_slug if self.target_slug else "",
@@ -208,11 +215,11 @@ class AnalysisExecutor:
             config_file=self.configuration_file,
         )
 
-        return config
+        return [config]
 
     def _target_to_sizingconfigurations_repo(
         self, target: SizingCollection, target_slug: Optional[str] = ""
-    ) -> SizingConfiguration:
+    ) -> List[SizingConfiguration]:
         config = SizingConfiguration(
             target.sizing_targets,
             target_slug=target_slug if target_slug else self.target_slug,
@@ -223,7 +230,7 @@ class AnalysisExecutor:
             parameters=target.sizing_parameters,
         )
 
-        return config
+        return [config]
 
 
 log_project_id_option = click.option(
