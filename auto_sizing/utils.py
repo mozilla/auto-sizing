@@ -1,6 +1,8 @@
 import itertools
 from datetime import datetime, timedelta
 from typing import Dict, List, Union
+from google.cloud import bigquery
+from mozanalysis.bq import BigQueryContext
 
 
 def dict_combinations(dictionary: Dict, key: str) -> List[Dict[str, Union[List, Dict]]]:
@@ -22,3 +24,11 @@ def default_dates_dict(
         "num_dates_enrollment": num_dates_enrollment,
         "analysis_length": analysis_length,
     }
+
+
+def delete_bq_table(
+    table_id: str,
+    project_id: str,
+) -> None:
+    client = bigquery.Client(project=project_id)
+    client.delete_table(table_id, not_found_ok=True)
