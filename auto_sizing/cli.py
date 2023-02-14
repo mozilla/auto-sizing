@@ -13,6 +13,7 @@ from .logging import LogConfiguration
 from .targets import SizingCollection, SizingConfiguration
 from .errors import NoConfigFileException
 from .utils import dict_combinations
+from .export_json import aggregate_and_reupload
 import pytz
 import click
 import sys
@@ -432,3 +433,14 @@ def run_argo(
         run_preset_jobs=True,
         refresh_manifest=refresh_manifest,
     ).execute(strategy=strategy)
+
+
+@cli.command()
+@project_id_option
+@bucket_option
+def aggregate_argo_results_json(project_id, bucket):
+    """
+    Retrieves all results from an auto_sizing Argo run from a GCS bucket.
+    Aggregates those results into one JSON file and reuploads to that bucket.
+    """
+    aggregate_and_reupload(project_id=project_id, bucket_name=bucket)
