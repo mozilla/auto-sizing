@@ -54,12 +54,11 @@ def aggregate_and_reupload(
 ) -> None:
     storage_client = storage.Client(project_id)
     bucket = storage_client.get_bucket(bucket_name)
-    blobs = storage_client.list_blobs(bucket_name, prefix="sample_sizes")
     jobs_dict = toml.load(RUN_MANIFEST)
 
     agg_json = {}
     target_results_filename_pattern = r"[\S*](target_\d*).json"
-    for blob in blobs:
+    for blob in storage_client.list_blobs(bucket_name, prefix="sample_sizes"):
         # For files in the bucket, check if file name matches `target_\d.json` pattern
         regexp_result = re.search(target_results_filename_pattern, blob.name)
         if regexp_result:
@@ -74,7 +73,12 @@ def aggregate_and_reupload(
             }
             agg_json[target_slug] = results
 
-            bucket.delete_blob(blob.name)
-
     file_name = f"auto_sizing_results_{datetime.today().strftime('%Y-%m-%d')}"
     _upload_str_to_gcs(project_id, bucket_name, file_name, SAMPLE_SIZE_PATH, json.dumps(agg_json))
+
+    for blob in storage_client.list_blobs(bucket_name, prefix="sample_sizes"):
+        regexp_result = re.search(target_results_filename_pattern, blob.name)
+        if regexp_result:
+            bucket.delete_blob(blob.name)
+
+    return 1
