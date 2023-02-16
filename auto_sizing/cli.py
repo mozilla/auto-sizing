@@ -438,7 +438,7 @@ def run_argo(
 @cli.command()
 @project_id_option
 @bucket_option
-def aggregate_argo_results_json(project_id, bucket):
+def aggregate_results(project_id, bucket):
     """
     Retrieves all results from an auto_sizing Argo run from a GCS bucket.
     Aggregates those results into one JSON file and reuploads to that bucket.
