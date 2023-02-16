@@ -302,18 +302,22 @@ target_slug_option = click.option(
 config_file_option = click.option(
     "--local_config",
     "config_file",
+    "--local-config",
+    "--config-file",
     help="Path to local config TOML file that contains settings for sizing job",
     type=click.File("rt"),
 )
 bucket_option = click.option("--bucket", help="GCS bucket to write to", required=False)
 run_presets_option = click.option(
     "--run_presets",
+    "--run-presets",
     help="Run auto sizing jobs defined in the manifest TOML",
     is_flag=True,
     default=False,
 )
 refresh_manifest_option = click.option(
     "--refresh_manifest",
+    "--refresh-manifest",
     help="Refresh the auto sizing jobs manifest based on the targets list TOML",
     is_flag=True,
     default=False,

@@ -2,11 +2,9 @@ import itertools
 from datetime import datetime, timedelta
 from typing import Dict, List, Union
 from google.cloud import bigquery
-from mozanalysis.bq import BigQueryContext
 
 
 def dict_combinations(dictionary: Dict, key: str) -> List[Dict[str, Union[List, Dict]]]:
-
     keys, values = zip(*dictionary[key].items())
     dictionary_list = [dict(zip(keys, v)) for v in itertools.product(*values)]
 
@@ -16,7 +14,6 @@ def dict_combinations(dictionary: Dict, key: str) -> List[Dict[str, Union[List, 
 def default_dates_dict(
     current_date: datetime, num_dates_enrollment: int = 7, analysis_length: int = 28
 ) -> Dict[str, Union[int, str]]:
-
     start_date = current_date - timedelta(num_dates_enrollment + analysis_length + 1)
 
     return {

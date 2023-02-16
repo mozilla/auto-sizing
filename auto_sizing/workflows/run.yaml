@@ -38,7 +38,8 @@ spec:
         "--target_slug={{inputs.parameters.slug}}",
         "--dataset_id={{workflow.parameters.dataset_id}}",
         "--project_id={{workflow.parameters.project_id}}",
-        "--bucket={{workflow.parameters.bucket}}"
+        "--bucket={{workflow.parameters.bucket}}",
+        "--run-presets"
       ]
       resources:
         requests:
