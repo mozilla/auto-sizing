@@ -76,9 +76,4 @@ def aggregate_and_reupload(
     file_name = f"auto_sizing_results_{datetime.today().strftime('%Y-%m-%d')}"
     _upload_str_to_gcs(project_id, bucket_name, file_name, SAMPLE_SIZE_PATH, json.dumps(agg_json))
 
-    for blob in storage_client.list_blobs(bucket_name, prefix="sample_sizes"):
-        regexp_result = re.search(target_results_filename_pattern, blob.name)
-        if regexp_result:
-            bucket.delete_blob(blob.name)
-
     return 1

@@ -107,10 +107,8 @@ class SizeCalculation:
 
         result_dict = {
             key: {
-                "number_of_clients_targeted": round(res[key]["number_of_clients_targeted"], 2),
-                "population_percent_per_branch": round(
-                    res[key]["population_percent_per_branch"], 2
-                ),
+                "number_of_clients_targeted": res[key]["number_of_clients_targeted"],
+                "population_percent_per_branch": res[key]["population_percent_per_branch"],
             }
             for key in res.keys()
         }
