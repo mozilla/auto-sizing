@@ -74,7 +74,7 @@ class ArgoExecutorStrategy:
 
         targets_list = [{"slug": config.target_slug} for config in worklist]
 
-        logger.warning(f"{type(worklist)} TARGETS LIST: {targets_list}")
+        logger.debug(f"TARGETS LIST: {targets_list}")
 
         return submit_workflow(
             project_id=self.project_id,
@@ -187,7 +187,7 @@ class AnalysisExecutor:
                     sizing_config = self._target_to_sizingconfigurations_repo(
                         sizing_collections, target_slug
                     )
-                    worklist.append(sizing_config)
+                    worklist.extend(sizing_config)
                 return worklist
 
             else:
@@ -442,9 +442,12 @@ def run_argo(
 @cli.command()
 @project_id_option
 @bucket_option
-def aggregate_argo_results_json(project_id, bucket):
+def export_aggregate_results(project_id, bucket):
     """
     Retrieves all results from an auto_sizing Argo run from a GCS bucket.
     Aggregates those results into one JSON file and reuploads to that bucket.
     """
+    if bucket is None:
+        raise ValueError("A GCS bucket must be provided to export aggregate results.")
+
     aggregate_and_reupload(project_id=project_id, bucket_name=bucket)
