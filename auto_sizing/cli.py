@@ -101,15 +101,12 @@ class SerialExecutorStrategy:
     sizing_class: Type = SizeCalculation
     experiment_getter: Callable[[], SizingCollection] = SizingCollection.from_repo
 
-    def execute(
-        self,
-        worklist: List[SizingConfiguration],
-    ):
+    def execute(self, worklist: List[SizingConfiguration], run_presets: bool = False):
         failed = False
         for config in worklist:
             try:
                 sizing = self.sizing_class(self.project_id, self.dataset_id, self.bucket, config)
-                sizing.run(datetime.now(tz=pytz.utc).date())
+                sizing.run(datetime.now(tz=pytz.utc).date(), run_presets)
 
             except Exception as e:
                 logger.exception(str(e), exc_info=e, extra={"target": config.target_slug})
@@ -150,7 +147,7 @@ class AnalysisExecutor:
 
         worklist = self._target_list_to_analyze(target_collection)
 
-        return strategy.execute(worklist)
+        return strategy.execute(worklist, self.run_preset_jobs)
 
     def _target_list_to_analyze(
         self, target_collection: SizingCollection
