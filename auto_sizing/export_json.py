@@ -1,10 +1,15 @@
 import re
+from datetime import datetime
 import google.cloud.storage as storage
 import logging
-
+from pathlib import Path
+import toml
+import json
 
 logger = logging.getLogger(__name__)
 SAMPLE_SIZE_PATH = "sample_sizes"
+DATA_DIR = Path(__file__).parent / "data"
+RUN_MANIFEST = DATA_DIR / "manifest.toml"
 
 
 def bq_normalize_name(name: str) -> str:
@@ -20,7 +25,8 @@ def _upload_str_to_gcs(
 ) -> None:
     storage_client = storage.Client(project_id)
     bucket = storage_client.get_bucket(bucket_name)
-    target_file = f"{base_name}_{bq_normalize_name(target_slug)}"
+    target_file_prefix = base_name.split("/")[0]
+    target_file = f"{target_file_prefix}_{bq_normalize_name(target_slug)}"
     target_path = base_name
     blob = bucket.blob(f"{target_path}/{target_file}.json")
 
@@ -37,8 +43,56 @@ def export_sample_size_json(
     bucket_name: str,
     target_slug: str,
     sample_size_result: str,
+    current_date: str,
 ) -> None:
-    """Export sample sizes to GCS."""
-    # TODO: Add logging for sizing results
+    """Export sample sizes to GCS bucket."""
 
-    _upload_str_to_gcs(project_id, bucket_name, target_slug, SAMPLE_SIZE_PATH, sample_size_result)
+    if "argo_" in target_slug:
+        _upload_str_to_gcs(
+            project_id,
+            bucket_name,
+            target_slug,
+            SAMPLE_SIZE_PATH + f"/ind_recipe_results_{current_date}",
+            sample_size_result,
+        )
+    else:
+        _upload_str_to_gcs(
+            project_id,
+            bucket_name,
+            target_slug,
+            SAMPLE_SIZE_PATH,
+            sample_size_result,
+        )
+
+
+def aggregate_and_reupload(
+    project_id: str,
+    bucket_name: str,
+) -> None:
+    today = datetime.today().strftime("%Y-%m-%d")
+    storage_client = storage.Client(project_id)
+    jobs_dict = toml.load(RUN_MANIFEST)
+
+    agg_json = {}
+    target_results_filename_pattern = r"[\S*](argo_target_\d*).json"
+    for blob in storage_client.list_blobs(
+        bucket_name, prefix=f"sample_sizes/ind_recipe_results_{today}"
+    ):
+        # For files in the bucket, check if file name matches `target_\d.json` pattern
+        regexp_result = re.search(target_results_filename_pattern, blob.name)
+        if regexp_result:
+            # If match, download the data in the file. Match the data to the target
+            # recipe, then upload results with target_slug and the target recipe for
+            # that slug.
+            target_slug = regexp_result.group(1)
+            data = blob.download_as_string()
+            results = {
+                "target_recipe": jobs_dict[target_slug],
+                "sample_sizes": json.loads(data),
+            }
+            agg_json[target_slug] = results
+
+    file_name = f"auto_sizing_results_{today}"
+    _upload_str_to_gcs(project_id, bucket_name, file_name, SAMPLE_SIZE_PATH, json.dumps(agg_json))
+
+    return 1
