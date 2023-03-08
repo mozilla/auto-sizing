@@ -117,9 +117,7 @@ class SizeCalculation:
 
         return result_dict
 
-    def publish_results(
-        self, result_dict: Dict[str, float], run_presets: bool, current_date: str
-    ) -> None:
+    def publish_results(self, result_dict: Dict[str, float], current_date: str) -> None:
         if self.config.config_file and not self.bucket:
             path = Path(self.config.config_file.name).parent / f"{self.config.target_slug}.json"
             path.write_text(json.dumps(result_dict))
@@ -131,11 +129,10 @@ class SizeCalculation:
                 self.bucket,
                 self.config.target_slug,
                 json.dumps(result_dict),
-                run_presets,
                 current_date,
             )
 
-    def run(self, current_date: datetime, run_presets: bool) -> None:
+    def run(self, current_date: datetime) -> None:
         time_limits = self._validate_requested_timelimits(current_date)
 
         ht = HistoricalTarget(
@@ -161,4 +158,4 @@ class SizeCalculation:
                 f"Power{str(parameters['power'])}EffectSize{str(parameters['effect_size'])}"
             ] = res
 
-        self.publish_results(results_combined, run_presets, current_date.strftime("%Y-%m-%d"))
+        self.publish_results(results_combined, current_date.strftime("%Y-%m-%d"))

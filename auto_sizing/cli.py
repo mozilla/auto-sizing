@@ -73,7 +73,6 @@ class ArgoExecutorStrategy:
         # ]
 
         targets_list = [{"slug": config.target_slug} for config in worklist]
-
         logger.debug(f"TARGETS LIST: {targets_list}")
 
         return submit_workflow(
@@ -101,12 +100,12 @@ class SerialExecutorStrategy:
     sizing_class: Type = SizeCalculation
     experiment_getter: Callable[[], SizingCollection] = SizingCollection.from_repo
 
-    def execute(self, worklist: List[SizingConfiguration], run_presets: bool = False):
+    def execute(self, worklist: List[SizingConfiguration]):
         failed = False
         for config in worklist:
             try:
                 sizing = self.sizing_class(self.project_id, self.dataset_id, self.bucket, config)
-                sizing.run(datetime.now(tz=pytz.utc).date(), run_presets)
+                sizing.run(datetime.now(tz=pytz.utc).date())
 
             except Exception as e:
                 logger.exception(str(e), exc_info=e, extra={"target": config.target_slug})
@@ -147,7 +146,7 @@ class AnalysisExecutor:
 
         worklist = self._target_list_to_analyze(target_collection)
 
-        return strategy.execute(worklist, self.run_preset_jobs)
+        return strategy.execute(worklist)
 
     def _target_list_to_analyze(
         self, target_collection: SizingCollection
@@ -167,7 +166,7 @@ class AnalysisExecutor:
                     recipe_num = 0
                     for app_id in ["firefox_desktop", "firefox_ios", "fenix"]:
                         for target in target_list:
-                            jobs_manifest[f"target_{recipe_num}"] = {
+                            jobs_manifest[f"argo_target_{recipe_num}"] = {
                                 "app_id": app_id,
                                 "target_recipe": json.dumps(target),
                             }

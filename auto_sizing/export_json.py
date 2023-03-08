@@ -43,12 +43,11 @@ def export_sample_size_json(
     bucket_name: str,
     target_slug: str,
     sample_size_result: str,
-    argo_run: bool,
     current_date: str,
 ) -> None:
     """Export sample sizes to GCS bucket."""
 
-    if argo_run:
+    if "argo_" in target_slug:
         _upload_str_to_gcs(
             project_id,
             bucket_name,
@@ -75,7 +74,7 @@ def aggregate_and_reupload(
     jobs_dict = toml.load(RUN_MANIFEST)
 
     agg_json = {}
-    target_results_filename_pattern = r"[\S*](target_\d*).json"
+    target_results_filename_pattern = r"[\S*](argo_target_\d*).json"
     for blob in storage_client.list_blobs(
         bucket_name, prefix=f"sample_sizes/ind_recipe_results_{today}"
     ):
