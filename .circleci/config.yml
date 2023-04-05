@@ -48,7 +48,7 @@ workflows:
       - gcp-gcr/build-and-push-image:
           requires:
             - build
-          image: jetstream
+          image: auto_sizing
           filters:
             branches:
               only:
