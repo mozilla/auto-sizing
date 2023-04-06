@@ -114,7 +114,7 @@ class SegmentsList:
 
         return Segment_list
 
-    def _desktop_sql(self, recipe: Dict[str, str]) -> Tuple[str, Segment]:
+    def _desktop_sql(self, target: Dict[str, str]) -> Tuple[str, Segment]:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
@@ -124,10 +124,10 @@ class SegmentsList:
         )
         )
         """.format(
-            version=recipe["minimum_version"],
-            channel=recipe["release_channel"],
-            locale=recipe["locale"],
-            country=recipe["country"],
+            version=target["minimum_version"],
+            channel=target["release_channel"],
+            locale=target["locale"],
+            country=target["country"],
         )
 
         return clients_daily_sql
@@ -174,7 +174,7 @@ class SegmentsList:
 
         return Segment_list
 
-    def _ios_sql(self, recipe: Dict) -> Tuple[str, str]:
+    def _ios_sql(self, target: Dict) -> Tuple[str, str]:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
@@ -184,10 +184,10 @@ class SegmentsList:
         )
         )
         """.format(
-            version=recipe["minimum_version"],
-            channel=recipe["release_channel"],
-            locale=recipe["locale"],
-            country=recipe["country"],
+            version=target["minimum_version"],
+            channel=target["release_channel"],
+            locale=target["locale"],
+            country=target["country"],
         )
 
         return clients_daily_sql
@@ -233,7 +233,7 @@ class SegmentsList:
 
         return Segment_list
 
-    def _fenix_sql(self, recipe: Dict) -> Tuple[str, str]:
+    def _fenix_sql(self, target: Dict) -> Tuple[str, str]:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
@@ -243,10 +243,10 @@ class SegmentsList:
         )
         )
         """.format(
-            version=recipe["minimum_version"],
-            channel=recipe["release_channel"],
-            locale=recipe["locale"],
-            country=recipe["country"],
+            version=target["minimum_version"],
+            channel=target["release_channel"],
+            locale=target["locale"],
+            country=target["country"],
         )
 
         return clients_daily_sql

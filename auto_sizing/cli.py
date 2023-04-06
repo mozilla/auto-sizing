@@ -163,14 +163,14 @@ class AnalysisExecutor:
                     target_list = dict_combinations(jobs_dict, "targets")
                     jobs_manifest = {}
 
-                    recipe_num = 0
+                    target_num = 0
                     for app_id in ["firefox_desktop", "firefox_ios", "fenix"]:
                         for target in target_list:
-                            jobs_manifest[f"argo_target_{recipe_num}"] = {
+                            jobs_manifest[f"argo_target_{target_num}"] = {
                                 "app_id": app_id,
                                 "target_recipe": json.dumps(target),
                             }
-                            recipe_num += 1
+                            target_num += 1
                     with open(self.RUN_MANIFEST, "w") as f:
                         toml.dump(jobs_manifest, f)
                 worklist = []
