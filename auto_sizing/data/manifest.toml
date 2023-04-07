@@ -1,239 +1,239 @@
-[target_0]
-app_id = "firefox_desktop"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
-
-[target_1]
-app_id = "firefox_desktop"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
-
-[target_2]
-app_id = "firefox_desktop"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
-
-[target_3]
-app_id = "firefox_desktop"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
-
-[target_4]
+[argo_target_0]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_5]
+[argo_target_1]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_6]
+[argo_target_2]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_7]
+[argo_target_3]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_8]
+[argo_target_4]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_9]
+[argo_target_5]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_10]
+[argo_target_6]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_11]
+[argo_target_7]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_12]
+[argo_target_8]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_13]
+[argo_target_9]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_14]
+[argo_target_10]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_15]
+[argo_target_11]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_16]
+[argo_target_12]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_17]
+[argo_target_13]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_18]
+[argo_target_14]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_19]
+[argo_target_15]
 app_id = "firefox_desktop"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_20]
-app_id = "firefox_ios"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
+[argo_target_16]
+app_id = "firefox_desktop"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_21]
-app_id = "firefox_ios"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
+[argo_target_17]
+app_id = "firefox_desktop"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_22]
-app_id = "firefox_ios"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
+[argo_target_18]
+app_id = "firefox_desktop"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_23]
-app_id = "firefox_ios"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
+[argo_target_19]
+app_id = "firefox_desktop"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_24]
+[argo_target_20]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_25]
+[argo_target_21]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_26]
+[argo_target_22]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_27]
+[argo_target_23]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_28]
+[argo_target_24]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_29]
+[argo_target_25]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_30]
+[argo_target_26]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_31]
+[argo_target_27]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_32]
+[argo_target_28]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_33]
+[argo_target_29]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_34]
+[argo_target_30]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_35]
+[argo_target_31]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_36]
+[argo_target_32]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_37]
+[argo_target_33]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_38]
+[argo_target_34]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_39]
+[argo_target_35]
 app_id = "firefox_ios"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_40]
-app_id = "fenix"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
+[argo_target_36]
+app_id = "firefox_ios"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_41]
-app_id = "fenix"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
+[argo_target_37]
+app_id = "firefox_ios"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_42]
-app_id = "fenix"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
+[argo_target_38]
+app_id = "firefox_ios"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_43]
-app_id = "fenix"
-target_recipe = "{\"minimum_version\": \"109\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
+[argo_target_39]
+app_id = "firefox_ios"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_44]
+[argo_target_40]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_45]
+[argo_target_41]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_46]
+[argo_target_42]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_47]
+[argo_target_43]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"108\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_48]
+[argo_target_44]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_49]
+[argo_target_45]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_50]
+[argo_target_46]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_51]
+[argo_target_47]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"107\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_52]
+[argo_target_48]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_53]
+[argo_target_49]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_54]
+[argo_target_50]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_55]
+[argo_target_51]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"106\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_56]
+[argo_target_52]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_57]
+[argo_target_53]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
 
-[target_58]
+[argo_target_54]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
 
-[target_59]
+[argo_target_55]
 app_id = "fenix"
 target_recipe = "{\"minimum_version\": \"105\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
+
+[argo_target_56]
+app_id = "fenix"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
+
+[argo_target_57]
+app_id = "fenix"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"
+
+[argo_target_58]
+app_id = "fenix"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"new\"}"
+
+[argo_target_59]
+app_id = "fenix"
+target_recipe = "{\"minimum_version\": \"104\", \"locale\": \"('EN-US', 'EN-CA', 'EN-GB')\", \"release_channel\": \"release\", \"country\": \"US\", \"user_type\": \"existing\"}"

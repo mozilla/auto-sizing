@@ -6,6 +6,7 @@ import attr
 from mozanalysis.segments import Segment, SegmentDataSource
 from mozanalysis.metrics import Metric, DataSource
 from mozanalysis.config import ConfigLoader
+from mozanalysis.utils import add_days
 
 from .utils import dict_combinations, default_dates_dict
 from .errors import (
@@ -19,9 +20,11 @@ from .errors import (
 class SegmentsList:
     """Builds list of Segments from list of dictionaries"""
 
-    def from_repo(self, target_list: Dict, app_id: str, start_date: str) -> List[Segment]:
+    def from_repo(
+        self, target_list: Dict, app_id: str, start_date: Optional[str] = None
+    ) -> List[Segment]:
         if app_id == "firefox_desktop":
-            return self._make_desktop_targets(target_list)
+            return self._make_desktop_targets(target_list, start_date)
         elif app_id == "firefox_ios":
             return self._make_ios_targets(target_list, start_date)
         elif app_id == "fenix":
@@ -73,10 +76,12 @@ class SegmentsList:
 
         return Segment_list
 
-    def _make_desktop_targets(self, target: Dict[str, str]) -> List[Segment]:
+    def _make_desktop_targets(
+        self, target: Dict[str, str], start_date: Optional[str] = None
+    ) -> List[Segment]:
         clients_daily = ConfigLoader.get_segment_data_source("clients_daily", "firefox_desktop")
 
-        clients_daily_sql, client_type = self._desktop_sql(target)
+        clients_daily_sql = self._desktop_sql(target)
         Segment_list = []
         Segment_list.append(
             Segment(
@@ -85,11 +90,31 @@ class SegmentsList:
                 select_expr=clients_daily_sql,
             )
         )
-        Segment_list.append(client_type)
+
+        clients_last_seen = SegmentDataSource(
+            name="clients_last_seen",
+            from_expr="`moz-fx-data-shared-prod.telemetry.clients_last_seen`",
+        )
+        if target["user_type"] == "new":
+            Segment_list.append(
+                Segment(
+                    name="clients_last_seen_filter",
+                    data_source=clients_last_seen,
+                    select_expr=f'COALESCE(MIN(first_seen_date)  >= "{start_date}", TRUE)',
+                )
+            )
+        elif target["user_type"] == "existing":
+            Segment_list.append(
+                Segment(
+                    name="clients_last_seen_filter",
+                    data_source=clients_last_seen,
+                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',
+                )
+            )
 
         return Segment_list
 
-    def _desktop_sql(self, recipe: Dict) -> Tuple[str, Segment]:
+    def _desktop_sql(self, target: Dict[str, str]) -> Tuple[str, Segment]:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
@@ -99,20 +124,13 @@ class SegmentsList:
         )
         )
         """.format(
-            version=recipe["minimum_version"],
-            channel=recipe["release_channel"],
-            locale=recipe["locale"],
-            country=recipe["country"],
+            version=target["minimum_version"],
+            channel=target["release_channel"],
+            locale=target["locale"],
+            country=target["country"],
         )
-        if recipe["user_type"] == "new":
-            client_type = ConfigLoader.get_segment(
-                "new_or_resurrected_v3", "firefox_desktop"
-            )  # TODO: change to first seen date
-        elif recipe["user_type"] == "existing":
-            client_type = ConfigLoader.get_segment(
-                "regular_users_v3", "firefox_desktop"
-            )  # TODO: 28 days old at last date of enrollment
-        return clients_daily_sql, client_type
+
+        return clients_daily_sql
 
     def _make_ios_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
         clients_daily = SegmentDataSource(
@@ -150,13 +168,13 @@ class SegmentsList:
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=baseline_clients_last_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date)  < "{start_date}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',
+                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',
                 )
             )
 
         return Segment_list
 
-    def _ios_sql(self, recipe: Dict) -> Tuple[str, str]:
+    def _ios_sql(self, target: Dict) -> Tuple[str, str]:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
@@ -166,10 +184,10 @@ class SegmentsList:
         )
         )
         """.format(
-            version=recipe["minimum_version"],
-            channel=recipe["release_channel"],
-            locale=recipe["locale"],
-            country=recipe["country"],
+            version=target["minimum_version"],
+            channel=target["release_channel"],
+            locale=target["locale"],
+            country=target["country"],
         )
 
         return clients_daily_sql
@@ -209,13 +227,13 @@ class SegmentsList:
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=baseline_clients_last_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date)  < "{start_date}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',
+                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',
                 )
             )
 
         return Segment_list
 
-    def _fenix_sql(self, recipe: Dict) -> Tuple[str, str]:
+    def _fenix_sql(self, target: Dict) -> Tuple[str, str]:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
@@ -225,10 +243,10 @@ class SegmentsList:
         )
         )
         """.format(
-            version=recipe["minimum_version"],
-            channel=recipe["release_channel"],
-            locale=recipe["locale"],
-            country=recipe["country"],
+            version=target["minimum_version"],
+            channel=target["release_channel"],
+            locale=target["locale"],
+            country=target["country"],
         )
 
         return clients_daily_sql

@@ -107,8 +107,9 @@ class SizeCalculation:
 
         result_dict = {
             key: {
-                "population_size": round(res[key]["population_size"], 2),
-                "population_percent": round(res[key]["population_percent"], 2),
+                "number_of_clients_targeted": res[key]["number_of_clients_targeted"],
+                "sample_size_per_branch": res[key]["sample_size_per_branch"],
+                "population_percent_per_branch": res[key]["population_percent_per_branch"],
             }
             for key in res.keys()
         }
@@ -116,7 +117,7 @@ class SizeCalculation:
 
         return result_dict
 
-    def publish_results(self, result_dict: Dict[str, float]) -> None:
+    def publish_results(self, result_dict: Dict[str, float], current_date: str) -> None:
         if self.config.config_file and not self.bucket:
             path = Path(self.config.config_file.name).parent / f"{self.config.target_slug}.json"
             path.write_text(json.dumps(result_dict))
@@ -124,13 +125,14 @@ class SizeCalculation:
 
         else:
             export_sample_size_json(
-                self.project, self.bucket, self.config.target_slug, json.dumps(result_dict)
+                self.project,
+                self.bucket,
+                self.config.target_slug,
+                json.dumps(result_dict),
+                current_date,
             )
 
-    def run(
-        self,
-        current_date: datetime,
-    ) -> None:
+    def run(self, current_date: datetime) -> None:
         time_limits = self._validate_requested_timelimits(current_date)
 
         ht = HistoricalTarget(
@@ -156,4 +158,4 @@ class SizeCalculation:
                 f"Power{str(parameters['power'])}EffectSize{str(parameters['effect_size'])}"
             ] = res
 
-        self.publish_results(results_combined)
+        self.publish_results(results_combined, current_date.strftime("%Y-%m-%d"))

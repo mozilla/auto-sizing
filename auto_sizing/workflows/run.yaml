@@ -28,6 +28,10 @@ spec:
         withParam: "{{inputs.parameters.targets}}"  # process these targets in parallel
         continueOn:
           failed: true
+    - - name: export-results
+        template: export-results
+        continueOn:
+          failed: true
 
   - name: target-autosizing
     inputs:
@@ -56,3 +60,13 @@ spec:
         factor: 2
         maxDuration: "5m"
 
+  - name: export-results
+    inputs:
+    container:
+      image: gcr.io/moz-fx-data-experiments/auto_sizing:latest
+      command: [
+        auto_sizing, export-aggregate-results, 
+        "--project_id={{workflow.parameters.project_id}}",
+        "--bucket={{workflow.parameters.bucket}}"
+      ]
+    activeDeadlineSeconds: 600   # terminate container template after 10 minutes

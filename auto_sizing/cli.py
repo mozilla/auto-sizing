@@ -13,6 +13,7 @@ from .logging import LogConfiguration
 from .targets import SizingCollection, SizingConfiguration
 from .errors import NoConfigFileException
 from .utils import dict_combinations
+from .export_json import aggregate_and_reupload
 import pytz
 import click
 import sys
@@ -72,8 +73,7 @@ class ArgoExecutorStrategy:
         # ]
 
         targets_list = [{"slug": config.target_slug} for config in worklist]
-
-        logger.warning(f"{type(worklist)} TARGETS LIST: {targets_list}")
+        logger.debug(f"TARGETS LIST: {targets_list}")
 
         return submit_workflow(
             project_id=self.project_id,
@@ -100,10 +100,7 @@ class SerialExecutorStrategy:
     sizing_class: Type = SizeCalculation
     experiment_getter: Callable[[], SizingCollection] = SizingCollection.from_repo
 
-    def execute(
-        self,
-        worklist: List[SizingConfiguration],
-    ):
+    def execute(self, worklist: List[SizingConfiguration]):
         failed = False
         for config in worklist:
             try:
@@ -166,14 +163,14 @@ class AnalysisExecutor:
                     target_list = dict_combinations(jobs_dict, "targets")
                     jobs_manifest = {}
 
-                    recipe_num = 0
+                    target_num = 0
                     for app_id in ["firefox_desktop", "firefox_ios", "fenix"]:
                         for target in target_list:
-                            jobs_manifest[f"target_{recipe_num}"] = {
+                            jobs_manifest[f"argo_target_{target_num}"] = {
                                 "app_id": app_id,
                                 "target_recipe": json.dumps(target),
                             }
-                            recipe_num += 1
+                            target_num += 1
                     with open(self.RUN_MANIFEST, "w") as f:
                         toml.dump(jobs_manifest, f)
                 worklist = []
@@ -186,7 +183,7 @@ class AnalysisExecutor:
                     sizing_config = self._target_to_sizingconfigurations_repo(
                         sizing_collections, target_slug
                     )
-                    worklist.append(sizing_config)
+                    worklist.extend(sizing_config)
                 return worklist
 
             else:
@@ -436,3 +433,17 @@ def run_argo(
         run_preset_jobs=True,
         refresh_manifest=refresh_manifest,
     ).execute(strategy=strategy)
+
+
+@cli.command()
+@project_id_option
+@bucket_option
+def export_aggregate_results(project_id, bucket):
+    """
+    Retrieves all results from an auto_sizing Argo run from a GCS bucket.
+    Aggregates those results into one JSON file and reuploads to that bucket.
+    """
+    if bucket is None:
+        raise ValueError("A GCS bucket must be provided to export aggregate results.")
+
+    aggregate_and_reupload(project_id=project_id, bucket_name=bucket)
