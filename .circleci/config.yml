@@ -4,10 +4,50 @@ version: 2.1
 orbs:
   gcp-gcr: circleci/gcp-gcr@0.15.1
 
+jobs:
+  build:
+    docker:
+    - image: python:3.10
+    steps:
+    - checkout
+    - restore_cache:
+        keys:
+          # when lock files change, use increasingly general patterns to restore cache
+          - &cache_key
+            python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-{{ checksum "requirements.txt" }}
+          - python-packages-v1-{{ .Branch }}-{{ checksum "requirements.in" }}-
+          - python-packages-v1-{{ .Branch }}-
+          - python-packages-v1-
+    - &build
+      run:
+        name: Build
+        command: |
+          python3.10 -m venv venv/
+          venv/bin/pip install --progress-bar off --upgrade -r requirements.txt
+    - run:
+        name: PyTest
+        command: venv/bin/pytest --black --ignore=auto_sizing/tests/integration/
+    - run:
+        name: flake8
+        command: venv/bin/flake8 auto_sizing
+    - run:
+        name: isort
+        command: venv/bin/isort --check auto_sizing
+    - run:
+        name: Mypy
+        command: venv/bin/mypy auto_sizing
+    - save_cache:
+        paths:
+        - venv/
+        key: *cache_key
+
 workflows:
   build-and-deploy:
     jobs:
+      - build
       - gcp-gcr/build-and-push-image:
+          requires:
+            - build
           image: auto_sizing
           filters:
             branches:
