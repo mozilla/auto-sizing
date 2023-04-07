@@ -1,22 +1,22 @@
-import attr
-from datetime import datetime, timedelta
-from typing import Optional, Type, Callable, Iterable, Mapping, TextIO, Protocol, Union, List
-import logging
-import toml
 import json
-from pathlib import Path
-from typing import Dict
-
-from jetstream.argo import submit_workflow
-from .size_calculation import SizeCalculation
-from .logging import LogConfiguration
-from .targets import SizingCollection, SizingConfiguration
-from .errors import NoConfigFileException
-from .utils import dict_combinations
-from .export_json import aggregate_and_reupload
-import pytz
-import click
+import logging
 import sys
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Callable, Iterable, List, Mapping, Optional, Protocol, TextIO, Type
+
+import attr
+import click
+import pytz
+import toml
+from jetstream.argo import submit_workflow
+
+from .errors import NoConfigFileException
+from .export_json import aggregate_and_reupload
+from .logging import LogConfiguration
+from .size_calculation import SizeCalculation
+from .targets import SizingCollection, SizingConfiguration
+from .utils import dict_combinations
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class ArgoExecutorStrategy:
     monitor_status: bool
     cluster_ip: Optional[str] = None
     cluster_cert: Optional[str] = None
-    experiment_getter: Callable[[], SizingCollection] = SizingCollection.from_repo
+    experiment_getter: Callable = SizingCollection.from_repo
 
     WORKFLOW_DIR = Path(__file__).parent / "workflows"
     RUN_WORKFLOW = WORKFLOW_DIR / "run.yaml"
@@ -98,7 +98,7 @@ class SerialExecutorStrategy:
     dataset_id: str
     bucket: str
     sizing_class: Type = SizeCalculation
-    experiment_getter: Callable[[], SizingCollection] = SizingCollection.from_repo
+    experiment_getter: Callable = SizingCollection.from_repo
 
     def execute(self, worklist: List[SizingConfiguration]):
         failed = False
@@ -120,7 +120,7 @@ class AnalysisExecutor:
     dataset_id: str
     bucket: str
     configuration_file: Optional[TextIO] = attr.ib(None)
-    target_slug: Optional[str] = attr.ib(None)
+    target_slug: str = attr.ib(None)
     run_preset_jobs: Optional[bool] = False
     refresh_manifest: Optional[bool] = False
 
@@ -215,7 +215,7 @@ class AnalysisExecutor:
         return [config]
 
     def _target_to_sizingconfigurations_repo(
-        self, target: SizingCollection, target_slug: Optional[str] = ""
+        self, target: SizingCollection, target_slug: str = ""
     ) -> List[SizingConfiguration]:
         config = SizingConfiguration(
             target.sizing_targets,

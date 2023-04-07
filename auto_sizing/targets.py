@@ -1,36 +1,33 @@
-from typing import List, Dict, Tuple, Optional
-from pathlib import Path
-import toml
 from datetime import datetime
+from typing import Dict, List, Optional, TextIO
+
 import attr
-from mozanalysis.segments import Segment, SegmentDataSource
-from mozanalysis.metrics import Metric, DataSource
+import toml
 from mozanalysis.config import ConfigLoader
+from mozanalysis.metrics import DataSource, Metric
+from mozanalysis.segments import Segment, SegmentDataSource
 from mozanalysis.utils import add_days
 
-from .utils import dict_combinations, default_dates_dict
-from .errors import (
-    MetricsTagNotFoundException,
-    SegmentsTagNotFoundException,
-    SegmentDataSourcesTagNotFoundException,
-    DataSourcesTagNotFoundException,
-)
+from .errors import MetricsTagNotFoundException, SegmentsTagNotFoundException
+from .utils import default_dates_dict, dict_combinations
 
 
 class SegmentsList:
     """Builds list of Segments from list of dictionaries"""
 
-    def from_repo(
-        self, target_list: Dict, app_id: str, start_date: Optional[str] = None
-    ) -> List[Segment]:
+    def from_repo(self, target_list: Dict, app_id: str, start_date: str = "") -> List[Segment]:
         if app_id == "firefox_desktop":
             return self._make_desktop_targets(target_list, start_date)
         elif app_id == "firefox_ios":
             return self._make_ios_targets(target_list, start_date)
         elif app_id == "fenix":
             return self._make_fenix_targets(target_list, start_date)
+        else:
+            raise ValueError(
+                "Invalid app_id: must be in ('firefox_desktop', 'firefox_ios', 'fenix')"
+            )
 
-    def from_file(self, target_dict: Dict, path: str) -> List[Segment]:
+    def from_file(self, target_dict: Dict, path: TextIO) -> List[Segment]:
         if "segments" not in target_dict.keys():
             raise SegmentsTagNotFoundException(path)
 
@@ -108,13 +105,13 @@ class SegmentsList:
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=clients_last_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',
+                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',  # noqa: E501
                 )
             )
 
         return Segment_list
 
-    def _desktop_sql(self, target: Dict[str, str]) -> Tuple[str, Segment]:
+    def _desktop_sql(self, target: Dict[str, str]) -> str:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
@@ -150,7 +147,7 @@ class SegmentsList:
         if target["user_type"] == "new":
             baseline_clients_first_seen = SegmentDataSource(
                 name="baseline_clients_first_seen",
-                from_expr="`moz-fx-data-shared-prod.org_mozilla_ios_firefox.baseline_clients_first_seen`",
+                from_expr="`moz-fx-data-shared-prod.org_mozilla_ios_firefox.baseline_clients_first_seen`",  # noqa: E501
             )
             Segment_list.append(
                 Segment(
@@ -162,19 +159,19 @@ class SegmentsList:
         elif target["user_type"] == "existing":
             baseline_clients_last_seen = SegmentDataSource(
                 name="baseline_clients_last_seen",
-                from_expr="`moz-fx-data-shared-prod.org_mozilla_ios_firefox.baseline_clients_last_seen`",
+                from_expr="`moz-fx-data-shared-prod.org_mozilla_ios_firefox.baseline_clients_last_seen`",  # noqa: E501
             )
             Segment_list.append(
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=baseline_clients_last_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',
+                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',  # noqa: E501
                 )
             )
 
         return Segment_list
 
-    def _ios_sql(self, target: Dict) -> Tuple[str, str]:
+    def _ios_sql(self, target: Dict) -> str:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
@@ -209,7 +206,7 @@ class SegmentsList:
         if target["user_type"] == "new":
             baseline_clients_first_seen = SegmentDataSource(
                 name="baseline_clients_first_seen",
-                from_expr="`moz-fx-data-shared-prod.org_mozilla_firefox.baseline_clients_first_seen`",
+                from_expr="`moz-fx-data-shared-prod.org_mozilla_firefox.baseline_clients_first_seen`",  # noqa: E501
             )
             Segment_list.append(
                 Segment(
@@ -221,19 +218,19 @@ class SegmentsList:
         elif target["user_type"] == "existing":
             baseline_clients_last_seen = SegmentDataSource(
                 name="baseline_clients_last_seen",
-                from_expr="`moz-fx-data-shared-prod.org_mozilla_firefox.baseline_clients_last_seen`",
+                from_expr="`moz-fx-data-shared-prod.org_mozilla_firefox.baseline_clients_last_seen`",  # noqa: E501
             )
             Segment_list.append(
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=baseline_clients_last_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',
+                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',  # noqa: E501
                 )
             )
 
         return Segment_list
 
-    def _fenix_sql(self, target: Dict) -> Tuple[str, str]:
+    def _fenix_sql(self, target: Dict) -> str:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
         (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
@@ -254,7 +251,7 @@ class SegmentsList:
 
 @attr.s(auto_attribs=True)
 class MetricsLists:
-    def from_file(self, target_dict: Dict, path: str) -> List[Metric]:
+    def from_file(self, target_dict: Dict, path: TextIO) -> List[Metric]:
         if "metrics" not in target_dict.keys():
             raise MetricsTagNotFoundException(path)
 
@@ -313,11 +310,11 @@ class SizingConfiguration:
     target_list: List[Segment]
     target_slug: str
     metric_list: List[Metric]
-    start_date: datetime
+    start_date: str
     num_dates_enrollment: int
     analysis_length: int
     parameters: List[Dict]
-    config_file: Optional[str] = ""
+    config_file: Optional[TextIO] = None
 
 
 @attr.s(auto_attribs=True)
@@ -337,7 +334,9 @@ class SizingCollection:
         app_id: str = "firefox_desktop",
     ) -> "SizingCollection":
         dates_dict = default_dates_dict(datetime.today())
-        segments_list = cls.segments_list.from_repo(target, app_id, dates_dict["start_date"])
+        segments_list = cls.segments_list.from_repo(
+            target, app_id, dates_dict["start_date"]  # type: ignore[arg-type]
+        )
         metric_list = cls.metrics_list.from_repo(jobs_dict, app_id)
 
         parameters_list = dict_combinations(jobs_dict, "parameters")
@@ -345,7 +344,7 @@ class SizingCollection:
         return cls(segments_list, metric_list, parameters_list, dates_dict)
 
     @classmethod
-    def from_file(cls, path: str) -> "SizingCollection":
+    def from_file(cls, path: TextIO) -> "SizingCollection":
         target_dict = toml.load(path)
 
         segment_list = cls.segments_list.from_file(target_dict, path)

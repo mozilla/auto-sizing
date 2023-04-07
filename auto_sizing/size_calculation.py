@@ -1,21 +1,19 @@
-from mozanalysis.sizing import HistoricalTarget
-from mozanalysis.experiment import TimeLimits
+import json
+from datetime import datetime, timedelta
+from pathlib import Path
+from typing import Any, Dict, Optional, Tuple
+
+import attr
 from mozanalysis.bq import BigQueryContext, sanitize_table_name_for_bq
-from mozanalysis.frequentist_stats.sample_size import (
-    z_or_t_ind_sample_size_calc,
-)
+from mozanalysis.experiment import TimeLimits
+from mozanalysis.frequentist_stats.sample_size import z_or_t_ind_sample_size_calc
+from mozanalysis.sizing import HistoricalTarget
+from pandas import DataFrame
 
 import auto_sizing.errors as errors
 from auto_sizing.export_json import export_sample_size_json
 from auto_sizing.targets import SizingConfiguration
 from auto_sizing.utils import delete_bq_table
-
-from datetime import datetime, timedelta
-from pathlib import Path
-import attr
-from typing import Any, Mapping, Dict, List, Optional, Tuple
-import json
-from pandas import DataFrame
 
 
 @attr.s(auto_attribs=True)
@@ -97,7 +95,7 @@ class SizeCalculation:
 
     def calculate_sample_sizes(
         self, metrics_table: DataFrame, parameters: Dict[str, float]
-    ) -> Dict[str, int]:
+    ) -> Dict[Any, Dict[str, Any]]:
         res = z_or_t_ind_sample_size_calc(
             df=metrics_table,
             metrics_list=self.config.metric_list,
@@ -117,7 +115,7 @@ class SizeCalculation:
 
         return result_dict
 
-    def publish_results(self, result_dict: Dict[str, float], current_date: str) -> None:
+    def publish_results(self, result_dict: Dict[str, Any], current_date: str) -> None:
         if self.config.config_file and not self.bucket:
             path = Path(self.config.config_file.name).parent / f"{self.config.target_slug}.json"
             path.write_text(json.dumps(result_dict))
@@ -149,7 +147,6 @@ class SizeCalculation:
 
         if len(metrics_table) == 0:
             print("No clients satisfied targeting.")
-            return 0
 
         for parameters in self.config.parameters:
             res = self.calculate_sample_sizes(metrics_table=metrics_table, parameters=parameters)
