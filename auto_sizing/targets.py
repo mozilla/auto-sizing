@@ -11,11 +11,15 @@ from mozanalysis.utils import add_days
 from .errors import MetricsTagNotFoundException, SegmentsTagNotFoundException
 from .utils import default_dates_dict, dict_combinations
 
+ALLOWED_APPS = Literal["firefox_desktop", "firefox_ios", "fenix"]
+
 
 class SegmentsList:
     """Builds list of Segments from list of dictionaries"""
 
-    def from_repo(self, target_list: Dict, app_id: str, start_date: str = "") -> List[Segment]:
+    def from_repo(
+        self, target_list: Dict, app_id: ALLOWED_APPS, start_date: str = ""
+    ) -> List[Segment]:
         if app_id == "firefox_desktop":
             return self._make_desktop_targets(target_list, start_date)
         elif app_id == "firefox_ios":
@@ -302,9 +306,7 @@ class MetricsLists:
 
         return Metric_list
 
-    def from_repo(
-        self, target_dict: Dict, app_id: Literal["firefox_desktop", "firefox_ios", "fenix"]
-    ) -> List[Metric]:
+    def from_repo(self, target_dict: Dict, app_id: ALLOWED_APPS) -> List[Metric]:
         metric_names = target_dict["metrics"][app_id]
         Metric_list = []
 
@@ -340,7 +342,7 @@ class SizingCollection:
         cls,
         target: Dict,
         jobs_dict: Dict,
-        app_id: Literal["firefox_desktop", "firefox_ios", "fenix"] = "firefox_desktop",
+        app_id: ALLOWED_APPS = "firefox_desktop",
     ) -> "SizingCollection":
         dates_dict = default_dates_dict(datetime.today())
         segments_list = cls.segments_list.from_repo(
