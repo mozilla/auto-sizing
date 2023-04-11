@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Dict, List, Optional, TextIO
+from typing import Dict, List, Literal, Optional, TextIO
 
 import attr
 import toml
@@ -295,7 +295,7 @@ class MetricsLists:
 
         return Metric_list
 
-    def from_repo(self, target_dict: Dict, app_id: str) -> List[Metric]:
+    def from_repo(self, target_dict: Dict, app_id: Literal["firefox_desktop", "firefox_ios", "fenix"]) -> List[Metric]:
         metric_names = target_dict["metrics"][app_id]
         Metric_list = []
 
@@ -331,7 +331,7 @@ class SizingCollection:
         cls,
         target: Dict,
         jobs_dict: Dict,
-        app_id: str = "firefox_desktop",
+        app_id: Literal["firefox_desktop", "firefox_ios", "fenix"] = "firefox_desktop",
     ) -> "SizingCollection":
         dates_dict = default_dates_dict(datetime.today())
         segments_list = cls.segments_list.from_repo(

@@ -95,7 +95,7 @@ class SizeCalculation:
 
     def calculate_sample_sizes(
         self, metrics_table: DataFrame, parameters: Dict[str, float]
-    ) -> Dict[Any, Dict[str, Any]]:
+    ) -> Dict[str, Dict[str, Any]]:
         res = z_or_t_ind_sample_size_calc(
             df=metrics_table,
             metrics_list=self.config.metric_list,
@@ -147,6 +147,7 @@ class SizeCalculation:
 
         if len(metrics_table) == 0:
             print("No clients satisfied targeting.")
+            return
 
         for parameters in self.config.parameters:
             res = self.calculate_sample_sizes(metrics_table=metrics_table, parameters=parameters)
