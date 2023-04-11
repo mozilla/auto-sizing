@@ -15,8 +15,7 @@ pip install .
 ```
 
 ## Production Build
-Docker images are built automatically via CI (see `.circleci/config.yml`) for new commits to `main`.
+Docker images are built automatically via CI (see `.circleci/config.yml`) whenever a PR is merged to `main`.
 
 ## Deployment
 Deployment is done similarly to [Jetstream](github.com/mozilla/jetstream): Docker container is built and pushed to GCR, where Argo manages orchestration of tasks in GKE. This tool leverages the existing Jetstream Argo cluster.
-
