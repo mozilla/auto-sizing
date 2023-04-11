@@ -1,6 +1,7 @@
 import itertools
 from datetime import datetime, timedelta
 from typing import Dict, List, Union
+
 from google.cloud import bigquery
 
 
@@ -13,7 +14,7 @@ def dict_combinations(dictionary: Dict, key: str) -> List[Dict[str, Union[List, 
 
 def default_dates_dict(
     current_date: datetime, num_dates_enrollment: int = 7, analysis_length: int = 28
-) -> Dict[str, Union[int, str]]:
+) -> Union[Dict[str, int], Dict[str, str], Dict[str, object]]:
     start_date = current_date - timedelta(num_dates_enrollment + analysis_length + 1)
 
     return {

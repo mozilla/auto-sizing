@@ -1,10 +1,11 @@
+import json
+import logging
 import re
 from datetime import datetime
-import google.cloud.storage as storage
-import logging
 from pathlib import Path
+
+import google.cloud.storage as storage
 import toml
-import json
 
 logger = logging.getLogger(__name__)
 SAMPLE_SIZE_PATH = "sample_sizes"
@@ -81,13 +82,14 @@ def aggregate_and_reupload(
     ):
         # For files in the bucket, check if file name matches `target_\d.json` pattern
         regexp_result = re.search(target_results_filename_pattern, blob.name)
-        target_slug = regexp_result.group(1)
-        data = blob.download_as_string()
-        results = {
-            "target_recipe": jobs_dict[target_slug],
-            "sample_sizes": json.loads(data),
-        }
-        agg_json[target_slug] = results
+        if regexp_result:
+            target_slug = regexp_result.group(1)
+            data = blob.download_as_string()
+            results = {
+                "target_recipe": jobs_dict[target_slug],
+                "sample_sizes": json.loads(data),
+            }
+            agg_json[target_slug] = results
 
     file_name = f"auto_sizing_results_{today}"
     _upload_str_to_gcs(project_id, bucket_name, file_name, SAMPLE_SIZE_PATH, json.dumps(agg_json))
