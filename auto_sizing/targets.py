@@ -73,9 +73,7 @@ class SegmentsList:
 
         return Segment_list
 
-    def _make_desktop_targets(
-        self, target: Dict[str, str], start_date: Optional[str] = None
-    ) -> List[Segment]:
+    def _make_desktop_targets(self, target: Dict[str, str], start_date: str = "") -> List[Segment]:
         clients_daily = ConfigLoader.get_segment_data_source("clients_daily", "firefox_desktop")
 
         clients_daily_sql = self._desktop_sql(target)
@@ -97,7 +95,7 @@ class SegmentsList:
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=clients_last_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date)  >= "{start_date}", TRUE)',
+                    select_expr=f"COALESCE(MIN(first_seen_date)  >= '{start_date}', TRUE)",
                 )
             )
         elif target["user_type"] == "existing":
@@ -105,7 +103,10 @@ class SegmentsList:
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=clients_last_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',  # noqa: E501
+                    select_expr="""COALESCE(MIN(first_seen_date) <= '{first_day}', TRUE)
+                    AND COALESCE(MIN(days_since_seen) = 0)""".format(
+                        first_day=add_days(start_date, -28)
+                    ),
                 )
             )
 
@@ -153,7 +154,7 @@ class SegmentsList:
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=baseline_clients_first_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date)  >= "{start_date}", TRUE)',
+                    select_expr=f"COALESCE(MIN(first_seen_date)  >= '{start_date}', TRUE)",
                 )
             )
         elif target["user_type"] == "existing":
@@ -165,7 +166,10 @@ class SegmentsList:
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=baseline_clients_last_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',  # noqa: E501
+                    select_expr="""COALESCE(MIN(first_seen_date) <= '{first_day}', TRUE)
+                    AND COALESCE(MIN(days_since_seen) = 0)""".format(
+                        first_day=add_days(start_date, -28)
+                    ),
                 )
             )
 
@@ -212,7 +216,7 @@ class SegmentsList:
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=baseline_clients_first_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date)  >= "{start_date}", TRUE)',
+                    select_expr=f"COALESCE(MIN(first_seen_date)  >= '{start_date}', TRUE)",
                 )
             )
         elif target["user_type"] == "existing":
@@ -224,7 +228,10 @@ class SegmentsList:
                 Segment(
                     name="clients_last_seen_filter",
                     data_source=baseline_clients_last_seen,
-                    select_expr=f'COALESCE(MIN(first_seen_date) <= "{add_days(start_date, -28)}", TRUE) AND COALESCE(MIN(days_since_seen) = 0)',  # noqa: E501
+                    select_expr="""COALESCE(MIN(first_seen_date) <= '{first_day}', TRUE)
+                    AND COALESCE(MIN(days_since_seen) = 0)""".format(
+                        first_day=add_days(start_date, -28)
+                    ),
                 )
             )
 
@@ -295,7 +302,9 @@ class MetricsLists:
 
         return Metric_list
 
-    def from_repo(self, target_dict: Dict, app_id: Literal["firefox_desktop", "firefox_ios", "fenix"]) -> List[Metric]:
+    def from_repo(
+        self, target_dict: Dict, app_id: Literal["firefox_desktop", "firefox_ios", "fenix"]
+    ) -> List[Metric]:
         metric_names = target_dict["metrics"][app_id]
         Metric_list = []
 
