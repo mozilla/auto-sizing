@@ -103,7 +103,8 @@ class SizeCalculation:
             power=parameters["power"],
         )
 
-        result_dict = {
+        result_dict = {"parameters": parameters}
+        result_dict["metrics"] = {
             key: {
                 "number_of_clients_targeted": res[key]["number_of_clients_targeted"],
                 "sample_size_per_branch": res[key]["sample_size_per_branch"],
@@ -111,7 +112,6 @@ class SizeCalculation:
             }
             for key in res.keys()
         }
-        result_dict["parameters"] = parameters
 
         return result_dict
 
