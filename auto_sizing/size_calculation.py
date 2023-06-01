@@ -95,7 +95,7 @@ class SizeCalculation:
 
     def calculate_sample_sizes(
         self, metrics_table: DataFrame, parameters: Dict[str, float]
-    ) -> Dict[str, Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         res = z_or_t_ind_sample_size_calc(
             df=metrics_table,
             metrics_list=self.config.metric_list,
@@ -103,14 +103,17 @@ class SizeCalculation:
             power=parameters["power"],
         )
 
-        result_dict = {"parameters": parameters}
-        result_dict["metrics"] = {
+        metrics_results = {
             key: {
                 "number_of_clients_targeted": res[key]["number_of_clients_targeted"],
                 "sample_size_per_branch": res[key]["sample_size_per_branch"],
                 "population_percent_per_branch": res[key]["population_percent_per_branch"],
             }
             for key in res.keys()
+        }
+        result_dict = {
+            "parameters": parameters,
+            "metrics": metrics_results,
         }
 
         return result_dict
