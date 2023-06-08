@@ -85,27 +85,62 @@ def aggregate_and_reupload(
         if regexp_result:
             target_slug = regexp_result.group(1)
             data = blob.download_as_string()
+
+            # parse out recipe fields
+            target_recipe = jobs_dict[target_slug]
+            recipe = json.loads(target_recipe["target_recipe"])
+            app_id = target_recipe.get("app_id")
+            channel = recipe.get("release_channel")
+            locale = recipe.get("locale")
+            country = recipe.get("country")
+            new_or_existing = recipe.get("user_type")
+            minimum_version = recipe.get("minimum_version")
+            recipe_info = {
+                "app_id": app_id,
+                "channel": channel,
+                "locale": locale,
+                "country": country,
+                "new_or_existing": new_or_existing,
+                "minimum_version": minimum_version,
+            }
             results = {
-                "target_recipe": jobs_dict[target_slug],
+                "target_recipe": recipe_info,
                 "sample_sizes": json.loads(data),
             }
-            target_recipe = jobs_dict[target_slug]
 
             # target_key should be an easy lookup for relevant sizing
             # {app_id}:{channel}:{locale}:{country}:{user_type}
-            app = target_recipe["app_id"]
-            recipe = json.loads(target_recipe["target_recipe"])
-            target_key = f"{app}"
-            if recipe.get("release_channel"):
-                target_key += f":{recipe.get('release_channel')}"
-            if recipe.get("locale"):
-                target_key += f":{recipe.get('locale')}"
-            if recipe.get("country"):
-                target_key += f":{recipe.get('country')}"
-            if recipe.get("user_type"):
-                target_key += f":{recipe.get('user_type')}"
 
-            agg_json[target_key] = results
+            target_key = f"{app_id}"
+            if channel:
+                target_key += f":{channel}"
+            if locale:
+                target_key += f":{locale}"
+            if country:
+                target_key += f":{country}"
+            if minimum_version:
+                target_key += f":{minimum_version}"
+
+            if not agg_json[target_key]:
+                agg_json[target_key] = {}
+            agg_json[target_key][new_or_existing] = results
+
+            # final structure looks like: (TODO: remove minimum_version)
+            """
+            {
+                "firefox_desktop:release:EN-US:US:110": {
+                    "new": {
+                        "target_recipe": { ... },
+                        "sample_sizes": { ... },
+                    },
+                    "existing": {
+                        "target_recipe": { ... },
+                        "sample_sizes": { ... },
+                    }
+                },
+                ...
+            }
+            """
 
     file_name = f"auto_sizing_results_{today}"
     _upload_str_to_gcs(project_id, bucket_name, file_name, SAMPLE_SIZE_PATH, json.dumps(agg_json))
