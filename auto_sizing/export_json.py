@@ -3,6 +3,7 @@ import logging
 import re
 from datetime import datetime
 from pathlib import Path
+from typing import Any
 
 import google.cloud.storage as storage
 import toml
@@ -75,7 +76,7 @@ def aggregate_and_reupload(
     storage_client = storage.Client(project_id)
     jobs_dict = toml.load(RUN_MANIFEST)
 
-    agg_json = {}
+    agg_json: dict[str, dict[str, Any]] = {}
     target_results_filename_pattern = rf"[\S*]({ARGO_PREFIX}_\d*).json"
     for blob in storage_client.list_blobs(
         bucket_name, prefix=f"{SAMPLE_SIZE_PATH}/ind_target_results_{today}"
