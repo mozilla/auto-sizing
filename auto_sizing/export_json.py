@@ -89,7 +89,23 @@ def aggregate_and_reupload(
                 "target_recipe": jobs_dict[target_slug],
                 "sample_sizes": json.loads(data),
             }
-            agg_json[target_slug] = results
+            target_recipe = jobs_dict[target_slug]
+
+            # target_key should be an easy lookup for relevant sizing
+            # {app_id}:{channel}:{locale}:{country}:{user_type}
+            app = target_recipe["app_id"]
+            recipe = json.loads(target_recipe["target_recipe"])
+            target_key = f"{app}"
+            if recipe.get("release_channel"):
+                target_key += f":{recipe.get('release_channel')}"
+            if recipe.get("locale"):
+                target_key += f":{recipe.get('locale')}"
+            if recipe.get("country"):
+                target_key += f":{recipe.get('country')}"
+            if recipe.get("user_type"):
+                target_key += f":{recipe.get('user_type')}"
+
+            agg_json[target_key] = results
 
     file_name = f"auto_sizing_results_{today}"
     _upload_str_to_gcs(project_id, bucket_name, file_name, SAMPLE_SIZE_PATH, json.dumps(agg_json))
