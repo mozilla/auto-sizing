@@ -110,26 +110,27 @@ def aggregate_and_reupload(
             }
 
             # target_key should be an easy lookup for relevant sizing
-            # {app_id}:{channel}:{locale}:{country}:{user_type}
+            # {app_id}:{channel}:{locale}:{country}:{minimum_version}
 
             target_key = f"{app_id}"
             if channel:
                 target_key += f":{channel}"
             if locale:
-                target_key += f":{locale}"
+                sorted_locale = sorted(locale)
+                target_key += f":{sorted_locale}"
             if country:
                 target_key += f":{country}"
             if minimum_version:
                 target_key += f":{minimum_version}"
 
-            if not agg_json[target_key]:
+            if target_key not in agg_json:
                 agg_json[target_key] = {}
             agg_json[target_key][new_or_existing] = results
 
             # final structure looks like: (TODO: remove minimum_version)
             """
             {
-                "firefox_desktop:release:EN-US:US:110": {
+                "firefox_desktop:release:['EN-US']:US:110": {
                     "new": {
                         "target_recipe": { ... },
                         "sample_sizes": { ... },
