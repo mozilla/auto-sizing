@@ -116,8 +116,10 @@ def aggregate_and_reupload(
             if channel:
                 target_key += f":{channel}"
             if locale:
-                sorted_locale = sorted(locale)
-                target_key += f":{sorted_locale}"
+                eval_locale = eval(locale)
+                sorted_locale = sorted(eval_locale) if type(eval_locale) is tuple else [eval_locale]
+                # string representation of list includes spaces between elements
+                target_key += f":{sorted_locale}".replace(" ", "")
             if country:
                 target_key += f":{country}"
             if minimum_version:
@@ -130,7 +132,7 @@ def aggregate_and_reupload(
             # final structure looks like: (TODO: remove minimum_version)
             """
             {
-                "firefox_desktop:release:['EN-US']:US:110": {
+                "firefox_desktop:release:['EN-CA','EN-US']:US:110": {
                     "new": {
                         "target_recipe": { ... },
                         "sample_sizes": { ... },
