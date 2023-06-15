@@ -146,3 +146,8 @@ def aggregate_and_reupload(
 
     file_name = f"auto_sizing_results_{today}"
     _upload_str_to_gcs(project_id, bucket_name, file_name, SAMPLE_SIZE_PATH, json.dumps(agg_json))
+
+    file_name_latest = "auto_sizing_results_latest"
+    _upload_str_to_gcs(
+        project_id, bucket_name, file_name_latest, SAMPLE_SIZE_PATH, json.dumps(agg_json)
+    )
