@@ -95,14 +95,12 @@ def aggregate_and_reupload(
             locale = recipe.get("locale")
             country = recipe.get("country")
             new_or_existing = recipe.get("user_type")
-            minimum_version = recipe.get("minimum_version")
             recipe_info = {
                 "app_id": app_id,
                 "channel": channel,
                 "locale": locale,
                 "country": country,
                 "new_or_existing": new_or_existing,
-                "minimum_version": minimum_version,
             }
             results = {
                 "target_recipe": recipe_info,
@@ -110,7 +108,7 @@ def aggregate_and_reupload(
             }
 
             # target_key should be an easy lookup for relevant sizing
-            # {app_id}:{channel}:{locale}:{country}:{minimum_version}
+            # {app_id}:{channel}:{locale}:{country}
 
             target_key = f"{app_id}"
             if channel:
@@ -122,14 +120,12 @@ def aggregate_and_reupload(
                 target_key += f":{sorted_locale}".replace(" ", "")
             if country:
                 target_key += f":{country}"
-            if minimum_version:
-                target_key += f":{minimum_version}"
 
             if target_key not in agg_json:
                 agg_json[target_key] = {}
             agg_json[target_key][new_or_existing] = results
 
-            # final structure looks like: (TODO: remove minimum_version)
+            # final structure looks like:
             """
             {
                 "firefox_desktop:release:['EN-CA','EN-US']:US:110": {

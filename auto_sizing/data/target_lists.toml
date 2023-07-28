@@ -1,5 +1,4 @@
 [targets]
-minimum_version = ["108", "107", "106", "105", "104"]
 locale = ["('EN-US')", "('EN-US', 'EN-CA', 'EN-GB')"]
 release_channel = ["release"]
 country = ["US"]
