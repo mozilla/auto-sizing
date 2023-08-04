@@ -119,14 +119,12 @@ class SegmentsList:
     def _desktop_sql(self, target: Dict[str, str]) -> str:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
-        (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
         (normalized_channel = '{channel}') AND
         (UPPER(locale) in {locale}) AND
         (country = '{country}')
         )
         )
         """.format(
-            version=target["minimum_version"],
             channel=target["release_channel"],
             locale=target["locale"],
             country=target["country"],
@@ -182,14 +180,12 @@ class SegmentsList:
     def _ios_sql(self, target: Dict) -> str:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
-        (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
         (normalized_channel = '{channel}') AND
         (UPPER(locale) in {locale}) AND
         (country = '{country}')
         )
         )
         """.format(
-            version=target["minimum_version"],
             channel=target["release_channel"],
             locale=target["locale"],
             country=target["country"],
@@ -244,14 +240,12 @@ class SegmentsList:
     def _fenix_sql(self, target: Dict) -> str:
         clients_daily_sql = """
         COALESCE(LOGICAL_OR(
-        (mozfun.norm.truncate_version(app_display_version, 'major') >= {version}) AND
         (normalized_channel = '{channel}') AND
         (UPPER(locale) in {locale}) AND
         (country = '{country}')
         )
         )
         """.format(
-            version=target["minimum_version"],
             channel=target["release_channel"],
             locale=target["locale"],
             country=target["country"],
