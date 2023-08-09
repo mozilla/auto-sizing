@@ -110,10 +110,10 @@ class SizeCalculation:
             key: {
                 "number_of_clients_targeted": res[key]["number_of_clients_targeted"],
                 "sample_size_per_branch": nan
-                if type(res[key]["sample_size_per_branch"]) == ndarray
+                if isinstance(res[key]["sample_size_per_branch"], ndarray)
                 else res[key]["sample_size_per_branch"],
                 "population_percent_per_branch": nan
-                if type(res[key]["population_percent_per_branch"]) == ndarray
+                if type(res[key]["population_percent_per_branch"], ndarray)
                 else res[key]["population_percent_per_branch"],
             }
             for key in res.keys()
