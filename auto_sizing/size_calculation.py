@@ -8,6 +8,7 @@ from mozanalysis.bq import BigQueryContext, sanitize_table_name_for_bq
 from mozanalysis.experiment import TimeLimits
 from mozanalysis.frequentist_stats.sample_size import z_or_t_ind_sample_size_calc
 from mozanalysis.sizing import HistoricalTarget
+from numpy import nan, ndarray
 from pandas import DataFrame
 
 import auto_sizing.errors as errors
@@ -86,7 +87,7 @@ class SizeCalculation:
             )
         )
 
-        df = self.bigquerycontext.run_query(metrics_sql, metrics_table_name).to_dataframe()
+        df = self.bigquerycontext.run_query(metrics_sql, metrics_table_name, replace_tables=True).to_dataframe()
         delete_bq_table(
             self.bigquerycontext.fully_qualify_table_name(targets_table_name), self.project
         )
@@ -106,8 +107,10 @@ class SizeCalculation:
         metrics_results = {
             key: {
                 "number_of_clients_targeted": res[key]["number_of_clients_targeted"],
-                "sample_size_per_branch": res[key]["sample_size_per_branch"],
-                "population_percent_per_branch": res[key]["population_percent_per_branch"],
+                "sample_size_per_branch": 
+                    nan if type(res[key]["sample_size_per_branch"]) == ndarray else res[key]["sample_size_per_branch"],
+                "population_percent_per_branch": 
+                    nan if type(res[key]["population_percent_per_branch"]) == ndarray else res[key]["population_percent_per_branch"],
             }
             for key in res.keys()
         }
@@ -124,7 +127,7 @@ class SizeCalculation:
             path.write_text(json.dumps(result_dict))
             print(f"Results saved at {path}")
 
-        else:
+        elif self.bucket:
             export_sample_size_json(
                 self.project,
                 self.bucket,
@@ -132,6 +135,10 @@ class SizeCalculation:
                 json.dumps(result_dict),
                 current_date,
             )
+        
+        path = Path(__file__).parent / f"{self.config.target_slug}.json"
+        path.write_text(json.dumps(result_dict))
+        print(f"Results saved at {path}")
 
     def run(self, current_date: datetime) -> None:
         time_limits = self._validate_requested_timelimits(current_date)
