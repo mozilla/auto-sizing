@@ -31,9 +31,9 @@ class LogConfiguration:
                 self.log_project_id,
                 self.log_dataset_id,
                 self.log_table_id,
+                self.source,
                 client,
                 self.capacity,
-                self.source,
             )
             bigquery_handler.setLevel(logging.WARNING)
             logger.addHandler(bigquery_handler)

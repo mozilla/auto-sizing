@@ -259,8 +259,8 @@ def cli(
         log_project_id,
         log_dataset_id,
         log_table_id,
-        log_to_bigquery,
         log_source,
+        log_to_bigquery,
     )
     log_config.setup_logger()
     ctx.ensure_object(dict)
