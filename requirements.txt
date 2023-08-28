@@ -363,6 +363,7 @@ google-api-core[grpc]==2.11.1 \
     --hash=sha256:d92a5a92dc36dd4f4b9ee4e55528a90e432b059f93aee6ad857f9de8cc7ae94a
     # via
     #   -r requirements.in
+    #   google-cloud-artifact-registry
     #   google-cloud-bigquery
     #   google-cloud-bigquery-storage
     #   google-cloud-container
@@ -376,6 +377,10 @@ google-auth==2.22.0 \
     #   google-api-core
     #   google-cloud-core
     #   google-cloud-storage
+google-cloud-artifact-registry==1.8.3 \
+    --hash=sha256:9206d2c0647939b90c6eea78a7878f5e7c65eee467d2761e182394d4b30f6521 \
+    --hash=sha256:c6b82d5123671cbca5e2a666732e1eb305ab8e25603616d3d6c0e622b19d2de9
+    # via mozilla-jetstream
 google-cloud-bigquery==3.11.4 \
     --hash=sha256:5fa7897743a0ed949ade25a0942fc9e7557d8fce307c6f8a76d1b604cf27f1b1 \
     --hash=sha256:697df117241a2283bcbb93b21e10badc14e51c9a90800d2a7e1a3e1c7d842974
@@ -489,13 +494,18 @@ google-resumable-media==2.5.0 \
     #   -r requirements.in
     #   google-cloud-bigquery
     #   google-cloud-storage
-googleapis-common-protos==1.60.0 \
+googleapis-common-protos[grpc]==1.60.0 \
     --hash=sha256:69f9bbcc6acde92cab2db95ce30a70bd2b81d20b12eff3f1aabaffcbe8a93918 \
     --hash=sha256:e73ebb404098db405ba95d1e1ae0aa91c3e15a71da031a2eeb6b2e23e7bc3708
     # via
     #   -r requirements.in
     #   google-api-core
+    #   grpc-google-iam-v1
     #   grpcio-status
+grpc-google-iam-v1==0.12.6 \
+    --hash=sha256:2bc4b8fdf22115a65d751c9317329322602c39b7c86a289c9b72d228d960ef5f \
+    --hash=sha256:5c10f3d8dc2d88678ab1a9b0cb5482735c5efee71e6c0cd59f872eef22913f5c
+    # via google-cloud-artifact-registry
 grpcio==1.56.2 \
     --hash=sha256:06e84ad9ae7668a109e970c7411e7992751a116494cba7c4fb877656527f9a57 \
     --hash=sha256:0ff789ae7d8ddd76d2ac02e7d13bfef6fc4928ac01e1dcaa182be51b6bcc0aaa \
@@ -546,6 +556,8 @@ grpcio==1.56.2 \
     #   -r requirements.in
     #   google-api-core
     #   google-cloud-bigquery
+    #   googleapis-common-protos
+    #   grpc-google-iam-v1
     #   grpcio-status
     #   mozilla-jetstream
 grpcio-status==1.56.2 \
@@ -784,9 +796,9 @@ mozanalysis==2023.5.3 \
     # via
     #   -r requirements.in
     #   mozilla-jetstream
-mozilla-jetstream==2023.6.1 \
-    --hash=sha256:9860814570d57a34bc77dcc1d638dc78c2a1abae2cdc26cb1016e646eae1f622 \
-    --hash=sha256:9eb1110911fe3005a8c6d12bc54ce784a5c92456c96fda7122a93dc774397cb4
+mozilla-jetstream==2023.8.1 \
+    --hash=sha256:89aa5ea27f7883c009cf618eebe9d31b147466efe1fd6c90dfe1ad8601e80df7 \
+    --hash=sha256:e018e99dac85e53821fbb98834cf037b2f83c658cb942251d8746bfe9bb250b7
     # via -r requirements.in
 mozilla-metric-config-parser==2023.6.7 \
     --hash=sha256:1f7b44ba7e4e86d817ee7dfe2b7420b35f4ee6c69d4a30d0e4bc2c48ab17adf9 \
@@ -800,6 +812,7 @@ mozilla-nimbus-schemas==2023.8.1 \
     --hash=sha256:c4f0de05785b7f59442d28ed185165a40fe71baa619402ce3378bc6a956329ab
     # via
     #   -r requirements.in
+    #   mozilla-jetstream
     #   mozilla-metric-config-parser
 msgpack==1.0.5 \
     --hash=sha256:06f5174b5f8ed0ed919da0e62cbd4ffde676a374aba4020034da05fab67b9164 \
@@ -1079,6 +1092,7 @@ proto-plus==1.22.3 \
     --hash=sha256:fdcd09713cbd42480740d2fe29c990f7fbd885a67efc328aa8be6ee3e9f76a6b
     # via
     #   -r requirements.in
+    #   google-cloud-artifact-registry
     #   google-cloud-bigquery
     #   google-cloud-bigquery-storage
     #   google-cloud-container
@@ -1099,10 +1113,12 @@ protobuf==4.23.4 \
     # via
     #   -r requirements.in
     #   google-api-core
+    #   google-cloud-artifact-registry
     #   google-cloud-bigquery
     #   google-cloud-bigquery-storage
     #   google-cloud-container
     #   googleapis-common-protos
+    #   grpc-google-iam-v1
     #   grpcio-status
     #   proto-plus
 psutil==5.9.5 \

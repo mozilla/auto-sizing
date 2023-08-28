@@ -10,6 +10,7 @@ import click
 import pytz
 import toml
 from jetstream.argo import submit_workflow
+from jetstream.logging import LOG_SOURCE
 
 from .errors import NoConfigFileException
 from .export_json import aggregate_and_reupload
@@ -236,7 +237,11 @@ log_table_id_option = click.option(
     "--log_table_id", "--log-table-id", default="logs", help="Table to write logs to"
 )
 log_source = click.option(
-    "--log-source", "--log_source", default="SIZING", help="Source column for logs"
+    "--log-source",
+    "--log_source",
+    default=LOG_SOURCE.SIZING,
+    type=LOG_SOURCE,
+    help="Source column for logs",
 )
 
 
