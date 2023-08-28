@@ -15,6 +15,7 @@ class BigQueryLogHandler(BufferingHandler):
         table_id: str,
         client: Optional[bigquery.Client] = None,
         capacity=50,
+        source: str = "SIZING",
     ):
         self.project_id = project_id
         self.dataset_id = dataset_id
@@ -22,6 +23,7 @@ class BigQueryLogHandler(BufferingHandler):
         self.client = client
         if client is None:
             self.client = bigquery.Client(project_id)
+        self.source = source
 
         super().__init__(capacity)
 
@@ -32,6 +34,7 @@ class BigQueryLogHandler(BufferingHandler):
                 "timestamp": datetime.datetime.fromtimestamp(record.created).strftime(
                     "%Y-%m-%d %H:%M:%S"
                 ),
+                "source": self.source if not hasattr(record, "source") else record.source,
                 "experiment": None if not hasattr(record, "experiment") else record.experiment,
                 "metric": None if not hasattr(record, "metric") else record.metric,
                 "statistic": None if not hasattr(record, "statistic") else record.statistic,
