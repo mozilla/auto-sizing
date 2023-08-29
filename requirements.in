@@ -350,7 +350,7 @@ types-pkg-resources==0.1.3
     # via mozilla-auto-sizing
 types-protobuf==4.23.0.3
     # via mozilla-auto-sizing
-types-pytz==2023.3.0.0
+types-pytz==2023.3.0.1
     # via mozilla-auto-sizing
 types-pyyaml==6.0.12.11
     # via mozilla-auto-sizing
