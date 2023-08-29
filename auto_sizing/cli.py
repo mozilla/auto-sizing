@@ -10,6 +10,7 @@ import click
 import pytz
 import toml
 from jetstream.argo import submit_workflow
+from jetstream.logging import LOG_SOURCE
 
 from .errors import NoConfigFileException
 from .export_json import aggregate_and_reupload
@@ -62,16 +63,6 @@ class ArgoExecutorStrategy:
         self,
         worklist: Iterable[SizingConfiguration],
     ):
-        # experiments_config: Dict[str, List[str]] = {}
-        # for config in worklist:
-        #     experiments_config.setdefault(config.experiment.normandy_slug, []).append(
-        #         # date.strftime("%Y-%m-%d")
-        #     )
-
-        # experiments_config_list = [
-        #     {"slug": slug, "dates": dates} for slug, dates in experiments_config.items()
-        # ]
-
         targets_list = [{"slug": config.target_slug} for config in worklist]
         logger.debug(f"TARGETS LIST: {targets_list}")
 
@@ -245,6 +236,13 @@ log_dataset_id_option = click.option(
 log_table_id_option = click.option(
     "--log_table_id", "--log-table-id", default="logs", help="Table to write logs to"
 )
+log_source = click.option(
+    "--log-source",
+    "--log_source",
+    default=LOG_SOURCE.SIZING,
+    type=LOG_SOURCE,
+    help="Source column for logs",
+)
 
 
 @click.group()
@@ -252,6 +250,7 @@ log_table_id_option = click.option(
 @log_dataset_id_option
 @log_table_id_option
 @click.option("--log_to_bigquery", "--log-to-bigquery", is_flag=True, default=False)
+@log_source
 @click.pass_context
 def cli(
     ctx,
@@ -259,11 +258,13 @@ def cli(
     log_dataset_id,
     log_table_id,
     log_to_bigquery,
+    log_source,
 ):
     log_config = LogConfiguration(
         log_project_id,
         log_dataset_id,
         log_table_id,
+        log_source,
         log_to_bigquery,
     )
     log_config.setup_logger()

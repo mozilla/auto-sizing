@@ -163,7 +163,7 @@ mozanalysis==2023.5.3
     #   mozilla-auto-sizing
     #   mozilla-jetstream
     # via -r -
-mozilla-jetstream==2023.6.1
+mozilla-jetstream==2023.8.1
     # via mozilla-auto-sizing
 mozilla-metric-config-parser==2023.6.7
     # via
