@@ -18,7 +18,7 @@ class LogConfiguration:
     log_table_id: Optional[str]
     log_to_bigquery: bool = False
     capacity: int = 50
-    source: str = LOG_SOURCE.SIZING
+    log_source: str = LOG_SOURCE.SIZING
 
     def setup_logger(self, client=None):
         logging.basicConfig(
@@ -32,7 +32,7 @@ class LogConfiguration:
                 self.log_project_id,
                 self.log_dataset_id,
                 self.log_table_id,
-                self.source,
+                self.log_source,
                 client,
                 self.capacity,
             )
