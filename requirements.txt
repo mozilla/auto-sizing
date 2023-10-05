@@ -1571,9 +1571,9 @@ types-protobuf==4.23.0.3 \
     --hash=sha256:035bd85066828d21f12ba42bfe941089b2b59a7d8ca64708696d63f8b4850e89 \
     --hash=sha256:772ed02906d456d71711d34c3c036b2137fd99a562a883da6d9aa232be0da357
     # via -r requirements.in
-types-pytz==2023.3.0.0 \
-    --hash=sha256:4fc2a7fbbc315f0b6630e0b899fd6c743705abe1094d007b0e612d10da15e0f3 \
-    --hash=sha256:ecdc70d543aaf3616a7e48631543a884f74205f284cefd6649ddf44c6a820aac
+types-pytz==2023.3.1.1 \
+    --hash=sha256:1999a123a3dc0e39a2ef6d19f3f8584211de9e6a77fe7a0259f04a524e90a5cf \
+    --hash=sha256:cc23d0192cd49c8f6bba44ee0c81e4586a8f30204970fc0894d209a6b08dab9a
     # via -r requirements.in
 types-pyyaml==6.0.12.11 \
     --hash=sha256:7d340b19ca28cddfdba438ee638cd4084bde213e501a3978738543e27094775b \
