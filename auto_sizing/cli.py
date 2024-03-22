@@ -33,15 +33,13 @@ All = AllType()
 class ExecutorStrategy(Protocol):
     project_id: str
 
-    def __init__(self, project_id: str, dataset_id: str, *args, **kwargs) -> None:
-        ...
+    def __init__(self, project_id: str, dataset_id: str, *args, **kwargs) -> None: ...
 
     def execute(
         self,
         worklist: Iterable[SizingConfiguration],
         configuration_map: Optional[Mapping[str, TextIO]] = None,
-    ) -> bool:
-        ...
+    ) -> bool: ...
 
 
 @attr.s(auto_attribs=True)
