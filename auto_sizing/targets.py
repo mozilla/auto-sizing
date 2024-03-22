@@ -50,9 +50,9 @@ class SegmentsList:
                 "import_from_metric_hub"
             ].items():
                 for segment_data_source in segment_data_sources:
-                    segments_dict["data_sources"][
-                        segment_data_source
-                    ] = ConfigLoader.get_segment_data_source(segment_data_source, app_id)
+                    segments_dict["data_sources"][segment_data_source] = (
+                        ConfigLoader.get_segment_data_source(segment_data_source, app_id)
+                    )
             segments_dict["data_sources"].pop("import_from_metric_hub")
 
         Segment_list = []
