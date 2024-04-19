@@ -155,7 +155,7 @@ class AnalysisExecutor:
                     target_num = 0
                     for app_id in ["firefox_desktop", "firefox_ios", "fenix"]:
                         for target in target_list:
-                            jobs_manifest[f"{app_id}_target_{target_num}"] = {
+                            jobs_manifest[f"argo_target_{target_num}"] = {
                                 "app_id": app_id,
                                 "target_recipe": json.dumps(target),
                             }
@@ -458,7 +458,7 @@ def refresh_manifest_file(target_lists_file=TARGET_SETTINGS, manifest_file=RUN_M
     target_num = 0
     for app_id in ["firefox_desktop", "firefox_ios", "fenix"]:
         for target in target_list:
-            jobs_manifest[f"{app_id}_target_{target_num}"] = {
+            jobs_manifest[f"argo_target_{target_num}"] = {
                 "app_id": app_id,
                 "target_recipe": json.dumps(target),
             }
