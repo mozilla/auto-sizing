@@ -97,15 +97,11 @@ class SerialExecutorStrategy:
         failed = False
         for config in worklist:
             try:
-                sizing = self.sizing_class(
-                    self.project_id, self.dataset_id, self.bucket, config
-                )
+                sizing = self.sizing_class(self.project_id, self.dataset_id, self.bucket, config)
                 sizing.run(datetime.now(tz=pytz.utc).date())
 
             except Exception as e:
-                logger.exception(
-                    str(e), exc_info=e, extra={"target": config.target_slug}
-                )
+                logger.exception(str(e), exc_info=e, extra={"target": config.target_slug})
                 failed = True
 
         return not failed
@@ -417,9 +413,7 @@ def run_argo(
 ):
     """Runs analysis for the provided date using Argo."""
     if not bucket:
-        raise Exception(
-            "A GCS bucket must be provided to save results from runs using Argo."
-        )
+        raise Exception("A GCS bucket must be provided to save results from runs using Argo.")
 
     strategy = ArgoExecutorStrategy(
         project_id=project_id,
@@ -456,9 +450,7 @@ def export_aggregate_results(project_id, bucket):
     aggregate_and_reupload(project_id=project_id, bucket_name=bucket)
 
 
-def refresh_manifest_file(
-    target_lists_file=TARGET_SETTINGS, manifest_file=RUN_MANIFEST
-):
+def refresh_manifest_file(target_lists_file=TARGET_SETTINGS, manifest_file=RUN_MANIFEST):
     jobs_dict = toml.load(target_lists_file)
     target_list = dict_combinations(jobs_dict, "targets")
     jobs_manifest = {}
