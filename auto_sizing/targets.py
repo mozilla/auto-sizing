@@ -77,10 +77,30 @@ class SegmentsList:
 
         return Segment_list
 
+    def _make_clients_daily_filter(self, target: Dict[str, str]) -> str:
+        conditions = []
+        for dimension, value in target.items():
+            if value != "all" and dimension != "user_type":
+                if isinstance(value, str):
+                    value = [value]
+                value_string = ",".join([f"'{v}'" for v in value])
+                conditions.append(f"(UPPER({dimension}) IN ({value_string}))")
+
+        condition_string = "\n AND ".join(conditions)
+        clients_daily_sql = f"""
+                COALESCE(
+                    LOGICAL_OR(
+                    {condition_string}
+                    )
+                )
+                """
+
+        return clients_daily_sql
+
     def _make_desktop_targets(self, target: Dict[str, str], start_date: str = "") -> List[Segment]:
         clients_daily = ConfigLoader.get_segment_data_source("clients_daily", "firefox_desktop")
 
-        clients_daily_sql = self._desktop_sql(target)
+        clients_daily_sql = self._make_clients_daily_filter(target)
         Segment_list = []
         Segment_list.append(
             Segment(
@@ -116,27 +136,11 @@ class SegmentsList:
 
         return Segment_list
 
-    def _desktop_sql(self, target: Dict[str, str]) -> str:
-        clients_daily_sql = """
-        COALESCE(LOGICAL_OR(
-        (normalized_channel = '{channel}') AND
-        (UPPER(locale) in {locale}) AND
-        (country = '{country}')
-        )
-        )
-        """.format(
-            channel=target["release_channel"],
-            locale=target["locale"],
-            country=target["country"],
-        )
-
-        return clients_daily_sql
-
     def _make_ios_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
         clients_daily = SegmentDataSource(
             name="clients_daily", from_expr="mozdata.org_mozilla_ios_firefox.baseline_clients_daily"
         )
-        clients_daily_sql = self._ios_sql(target)
+        clients_daily_sql = self._make_clients_daily_filter(target)
 
         Segment_list = []
         Segment_list.append(
@@ -177,28 +181,12 @@ class SegmentsList:
 
         return Segment_list
 
-    def _ios_sql(self, target: Dict) -> str:
-        clients_daily_sql = """
-        COALESCE(LOGICAL_OR(
-        (normalized_channel = '{channel}') AND
-        (UPPER(locale) in {locale}) AND
-        (country = '{country}')
-        )
-        )
-        """.format(
-            channel=target["release_channel"],
-            locale=target["locale"],
-            country=target["country"],
-        )
-
-        return clients_daily_sql
-
     def _make_fenix_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
         clients_daily = SegmentDataSource(
             name="clients_daily", from_expr="mozdata.org_mozilla_firefox.baseline_clients_daily"
         )
 
-        clients_daily_sql = self._fenix_sql(target)
+        clients_daily_sql = self._make_clients_daily_filter(target)
         Segment_list = []
         Segment_list.append(
             Segment(
@@ -236,22 +224,6 @@ class SegmentsList:
             )
 
         return Segment_list
-
-    def _fenix_sql(self, target: Dict) -> str:
-        clients_daily_sql = """
-        COALESCE(LOGICAL_OR(
-        (normalized_channel = '{channel}') AND
-        (UPPER(locale) in {locale}) AND
-        (country = '{country}')
-        )
-        )
-        """.format(
-            channel=target["release_channel"],
-            locale=target["locale"],
-            country=target["country"],
-        )
-
-        return clients_daily_sql
 
 
 @attr.s(auto_attribs=True)
