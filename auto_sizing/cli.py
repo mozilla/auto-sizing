@@ -29,6 +29,10 @@ class AllType:
 
 All = AllType()
 
+DATA_DIR = Path(__file__).parent / "data"
+RUN_MANIFEST = DATA_DIR / "manifest.toml"
+TARGET_SETTINGS = DATA_DIR / "target_lists.toml"
+
 
 class ExecutorStrategy(Protocol):
     project_id: str
@@ -113,10 +117,6 @@ class AnalysisExecutor:
     run_preset_jobs: Optional[bool] = False
     refresh_manifest: Optional[bool] = False
 
-    DATA_DIR = Path(__file__).parent / "data"
-    RUN_MANIFEST = DATA_DIR / "manifest.toml"
-    TARGET_SETTINGS = DATA_DIR / "target_lists.toml"
-
     @staticmethod
     def _today() -> datetime:
         return datetime.combine(
@@ -145,8 +145,8 @@ class AnalysisExecutor:
             return self._target_to_sizingconfigurations_file(sizing_job)
 
         elif self.run_preset_jobs:
-            jobs_dict = toml.load(self.TARGET_SETTINGS)
-            jobs_manifest = toml.load(self.RUN_MANIFEST)
+            jobs_dict = toml.load(TARGET_SETTINGS)
+            jobs_manifest = toml.load(RUN_MANIFEST)
             if isinstance(self.target_slug, AllType):
                 if self.refresh_manifest:
                     target_list = dict_combinations(jobs_dict, "targets")
@@ -160,7 +160,7 @@ class AnalysisExecutor:
                                 "target_recipe": json.dumps(target),
                             }
                             target_num += 1
-                    with open(self.RUN_MANIFEST, "w") as f:
+                    with open(RUN_MANIFEST, "w") as f:
                         toml.dump(jobs_manifest, f)
                 worklist = []
                 for target_slug, job_target in jobs_manifest.items():
@@ -178,7 +178,9 @@ class AnalysisExecutor:
             else:
                 job_target = jobs_manifest[self.target_slug]
                 sizing_collections = target_collection.from_repo(
-                    json.loads(job_target["target_recipe"]), jobs_dict, app_id=job_target["app_id"]
+                    json.loads(job_target["target_recipe"]),
+                    jobs_dict,
+                    app_id=job_target["app_id"],
                 )
 
                 return self._target_to_sizingconfigurations_repo(sizing_collections)
@@ -446,3 +448,44 @@ def export_aggregate_results(project_id, bucket):
         raise ValueError("A GCS bucket must be provided to export aggregate results.")
 
     aggregate_and_reupload(project_id=project_id, bucket_name=bucket)
+
+
+def refresh_manifest_file(target_lists_file=TARGET_SETTINGS, manifest_file=RUN_MANIFEST):
+    jobs_dict = toml.load(target_lists_file)
+    target_list = dict_combinations(jobs_dict, "targets")
+    jobs_manifest = {}
+
+    target_num = 0
+    for app_id in ["firefox_desktop", "firefox_ios", "fenix"]:
+        for target in target_list:
+            jobs_manifest[f"argo_target_{target_num}"] = {
+                "app_id": app_id,
+                "target_recipe": json.dumps(target),
+            }
+            target_num += 1
+    with open(manifest_file, "w") as f:
+        logger.info(f"Exporting manifest to {manifest_file}")
+        toml.dump(jobs_manifest, f)
+
+
+@cli.command()
+@click.option(
+    "--target-lists-file",
+    "--target-lists",
+    default=TARGET_SETTINGS,
+    help="Path to TOML file that contains target lists from which to generate a manifest TOML.",
+    type=click.File("rt"),
+)
+@click.option(
+    "--manifest-file",
+    "--manifest",
+    default=RUN_MANIFEST,
+    help="Path to TOML file where refreshed manifest should be written.",
+    type=click.File("wt"),
+)
+def refresh_manifest(target_lists_file, manifest_file):
+    """
+    Retrieves the target_lists.toml file and generates a new manifest.toml.
+    """
+
+    refresh_manifest_file()
