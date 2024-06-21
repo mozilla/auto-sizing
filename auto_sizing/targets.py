@@ -80,6 +80,7 @@ class SegmentsList:
     def _make_clients_daily_filter(self, target: Dict[str, str]) -> str:
         conditions = []
         for dimension, value in target.items():
+            dimension = dimension.replace("release", "normalized")
             value_list = list()
             if isinstance(value, tuple):
                 value_list = list(value)
