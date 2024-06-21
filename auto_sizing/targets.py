@@ -51,7 +51,9 @@ class SegmentsList:
             ].items():
                 for segment_data_source in segment_data_sources:
                     segments_dict["data_sources"][segment_data_source] = (
-                        ConfigLoader.get_segment_data_source(segment_data_source, app_id)
+                        ConfigLoader.get_segment_data_source(
+                            segment_data_source, app_id
+                        )
                     )
             segments_dict["data_sources"].pop("import_from_metric_hub")
 
@@ -80,10 +82,13 @@ class SegmentsList:
     def _make_clients_daily_filter(self, target: Dict[str, str]) -> str:
         conditions = []
         for dimension, value in target.items():
-            if value != "all" and dimension != "user_type":
+            value_list = list()
+            if isinstance(value, tuple):
+                value_list = list(value)
+            elif value != "all" and dimension != "user_type":
                 if isinstance(value, str):
-                    value = [value]
-                value_string = ",".join([f"'{v}'" for v in value])
+                    value_list = [value]
+                value_string = ",".join([f"'{v}'" for v in value_list])
                 conditions.append(f"(UPPER({dimension}) IN ({value_string}))")
 
         condition_string = "\n AND ".join(conditions)
@@ -97,8 +102,12 @@ class SegmentsList:
 
         return clients_daily_sql
 
-    def _make_desktop_targets(self, target: Dict[str, str], start_date: str = "") -> List[Segment]:
-        clients_daily = ConfigLoader.get_segment_data_source("clients_daily", "firefox_desktop")
+    def _make_desktop_targets(
+        self, target: Dict[str, str], start_date: str = ""
+    ) -> List[Segment]:
+        clients_daily = ConfigLoader.get_segment_data_source(
+            "clients_daily", "firefox_desktop"
+        )
 
         clients_daily_sql = self._make_clients_daily_filter(target)
         Segment_list = []
@@ -136,9 +145,12 @@ class SegmentsList:
 
         return Segment_list
 
-    def _make_ios_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
+    def _make_ios_targets(
+        self, target: Dict[str, str], start_date: str
+    ) -> List[Segment]:
         clients_daily = SegmentDataSource(
-            name="clients_daily", from_expr="mozdata.org_mozilla_ios_firefox.baseline_clients_daily"
+            name="clients_daily",
+            from_expr="mozdata.org_mozilla_ios_firefox.baseline_clients_daily",
         )
         clients_daily_sql = self._make_clients_daily_filter(target)
 
@@ -181,9 +193,12 @@ class SegmentsList:
 
         return Segment_list
 
-    def _make_fenix_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
+    def _make_fenix_targets(
+        self, target: Dict[str, str], start_date: str
+    ) -> List[Segment]:
         clients_daily = SegmentDataSource(
-            name="clients_daily", from_expr="mozdata.org_mozilla_firefox.baseline_clients_daily"
+            name="clients_daily",
+            from_expr="mozdata.org_mozilla_firefox.baseline_clients_daily",
         )
 
         clients_daily_sql = self._make_clients_daily_filter(target)
@@ -248,8 +263,8 @@ class MetricsLists:
                 "import_from_metric_hub"
             ].items():
                 for data_source in data_sources:
-                    target_dict["data_sources"][data_source] = ConfigLoader.get_data_source(
-                        data_source, app_id
+                    target_dict["data_sources"][data_source] = (
+                        ConfigLoader.get_data_source(data_source, app_id)
                     )
 
         Metric_list = []
@@ -262,7 +277,8 @@ class MetricsLists:
                     Metric(
                         name=key,
                         data_source=DataSource(
-                            name=value["data_source"], from_expr=data_source["from_expression"]
+                            name=value["data_source"],
+                            from_expr=data_source["from_expression"],
                         ),
                         select_expr=ConfigLoader.configs.get_env()
                         .from_string(value["select_expression"])
@@ -312,7 +328,9 @@ class SizingCollection:
     ) -> "SizingCollection":
         dates_dict = default_dates_dict(datetime.today())
         segments_list = cls.segments_list.from_repo(
-            target, app_id, dates_dict["start_date"]  # type: ignore[arg-type]
+            target,
+            app_id,
+            dates_dict["start_date"],  # type: ignore[arg-type]
         )
         metric_list = cls.metrics_list.from_repo(jobs_dict, app_id)
 
