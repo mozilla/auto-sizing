@@ -51,9 +51,7 @@ class SegmentsList:
             ].items():
                 for segment_data_source in segment_data_sources:
                     segments_dict["data_sources"][segment_data_source] = (
-                        ConfigLoader.get_segment_data_source(
-                            segment_data_source, app_id
-                        )
+                        ConfigLoader.get_segment_data_source(segment_data_source, app_id)
                     )
             segments_dict["data_sources"].pop("import_from_metric_hub")
 
@@ -102,12 +100,8 @@ class SegmentsList:
 
         return clients_daily_sql
 
-    def _make_desktop_targets(
-        self, target: Dict[str, str], start_date: str = ""
-    ) -> List[Segment]:
-        clients_daily = ConfigLoader.get_segment_data_source(
-            "clients_daily", "firefox_desktop"
-        )
+    def _make_desktop_targets(self, target: Dict[str, str], start_date: str = "") -> List[Segment]:
+        clients_daily = ConfigLoader.get_segment_data_source("clients_daily", "firefox_desktop")
 
         clients_daily_sql = self._make_clients_daily_filter(target)
         Segment_list = []
@@ -145,9 +139,7 @@ class SegmentsList:
 
         return Segment_list
 
-    def _make_ios_targets(
-        self, target: Dict[str, str], start_date: str
-    ) -> List[Segment]:
+    def _make_ios_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
         clients_daily = SegmentDataSource(
             name="clients_daily",
             from_expr="mozdata.org_mozilla_ios_firefox.baseline_clients_daily",
@@ -193,9 +185,7 @@ class SegmentsList:
 
         return Segment_list
 
-    def _make_fenix_targets(
-        self, target: Dict[str, str], start_date: str
-    ) -> List[Segment]:
+    def _make_fenix_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
         clients_daily = SegmentDataSource(
             name="clients_daily",
             from_expr="mozdata.org_mozilla_firefox.baseline_clients_daily",
@@ -263,8 +253,8 @@ class MetricsLists:
                 "import_from_metric_hub"
             ].items():
                 for data_source in data_sources:
-                    target_dict["data_sources"][data_source] = (
-                        ConfigLoader.get_data_source(data_source, app_id)
+                    target_dict["data_sources"][data_source] = ConfigLoader.get_data_source(
+                        data_source, app_id
                     )
 
         Metric_list = []
