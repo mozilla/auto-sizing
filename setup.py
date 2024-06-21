@@ -74,7 +74,7 @@ setup(
     extras_require=extras,
     long_description=text_from_file("README.md"),
     long_description_content_type="text/markdown",
-    python_requires=">=3.8",
+    python_requires=">=3.10",
     entry_points="""
             [console_scripts]
             pensieve=auto_sizing.cli:cli
