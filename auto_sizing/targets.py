@@ -77,10 +77,29 @@ class SegmentsList:
 
         return Segment_list
 
+    def _make_clients_daily_filter(self, target: Dict[str, str]) -> str:
+        conditions = []
+        for dimension, value in target.items():
+            dimension = dimension.replace("release", "normalized")
+
+            if value != "all" and dimension != "user_type":
+                conditions.append(f"(UPPER({dimension}) IN {value})")
+
+        condition_string = "\n AND ".join(conditions)
+        clients_daily_sql = f"""
+                COALESCE(
+                    LOGICAL_OR(
+                    {condition_string}
+                    )
+                )
+                """
+
+        return clients_daily_sql
+
     def _make_desktop_targets(self, target: Dict[str, str], start_date: str = "") -> List[Segment]:
         clients_daily = ConfigLoader.get_segment_data_source("clients_daily", "firefox_desktop")
 
-        clients_daily_sql = self._desktop_sql(target)
+        clients_daily_sql = self._make_clients_daily_filter(target)
         Segment_list = []
         Segment_list.append(
             Segment(
@@ -116,27 +135,12 @@ class SegmentsList:
 
         return Segment_list
 
-    def _desktop_sql(self, target: Dict[str, str]) -> str:
-        clients_daily_sql = """
-        COALESCE(LOGICAL_OR(
-        (normalized_channel = '{channel}') AND
-        (UPPER(locale) in {locale}) AND
-        (country = '{country}')
-        )
-        )
-        """.format(
-            channel=target["release_channel"],
-            locale=target["locale"],
-            country=target["country"],
-        )
-
-        return clients_daily_sql
-
     def _make_ios_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
         clients_daily = SegmentDataSource(
-            name="clients_daily", from_expr="mozdata.org_mozilla_ios_firefox.baseline_clients_daily"
+            name="clients_daily",
+            from_expr="mozdata.org_mozilla_ios_firefox.baseline_clients_daily",
         )
-        clients_daily_sql = self._ios_sql(target)
+        clients_daily_sql = self._make_clients_daily_filter(target)
 
         Segment_list = []
         Segment_list.append(
@@ -177,28 +181,13 @@ class SegmentsList:
 
         return Segment_list
 
-    def _ios_sql(self, target: Dict) -> str:
-        clients_daily_sql = """
-        COALESCE(LOGICAL_OR(
-        (normalized_channel = '{channel}') AND
-        (UPPER(locale) in {locale}) AND
-        (country = '{country}')
-        )
-        )
-        """.format(
-            channel=target["release_channel"],
-            locale=target["locale"],
-            country=target["country"],
-        )
-
-        return clients_daily_sql
-
     def _make_fenix_targets(self, target: Dict[str, str], start_date: str) -> List[Segment]:
         clients_daily = SegmentDataSource(
-            name="clients_daily", from_expr="mozdata.org_mozilla_firefox.baseline_clients_daily"
+            name="clients_daily",
+            from_expr="mozdata.org_mozilla_firefox.baseline_clients_daily",
         )
 
-        clients_daily_sql = self._fenix_sql(target)
+        clients_daily_sql = self._make_clients_daily_filter(target)
         Segment_list = []
         Segment_list.append(
             Segment(
@@ -237,22 +226,6 @@ class SegmentsList:
 
         return Segment_list
 
-    def _fenix_sql(self, target: Dict) -> str:
-        clients_daily_sql = """
-        COALESCE(LOGICAL_OR(
-        (normalized_channel = '{channel}') AND
-        (UPPER(locale) in {locale}) AND
-        (country = '{country}')
-        )
-        )
-        """.format(
-            channel=target["release_channel"],
-            locale=target["locale"],
-            country=target["country"],
-        )
-
-        return clients_daily_sql
-
 
 @attr.s(auto_attribs=True)
 class MetricsLists:
@@ -290,7 +263,8 @@ class MetricsLists:
                     Metric(
                         name=key,
                         data_source=DataSource(
-                            name=value["data_source"], from_expr=data_source["from_expression"]
+                            name=value["data_source"],
+                            from_expr=data_source["from_expression"],
                         ),
                         select_expr=ConfigLoader.configs.get_env()
                         .from_string(value["select_expression"])
@@ -340,7 +314,9 @@ class SizingCollection:
     ) -> "SizingCollection":
         dates_dict = default_dates_dict(datetime.today())
         segments_list = cls.segments_list.from_repo(
-            target, app_id, dates_dict["start_date"]  # type: ignore[arg-type]
+            target,
+            app_id,
+            dates_dict["start_date"],  # type: ignore[arg-type]
         )
         metric_list = cls.metrics_list.from_repo(jobs_dict, app_id)
 
