@@ -81,14 +81,9 @@ class SegmentsList:
         conditions = []
         for dimension, value in target.items():
             dimension = dimension.replace("release", "normalized")
-            value_list = list()
-            if isinstance(value, tuple):
-                value_list = list(value)
-            elif value != "all" and dimension != "user_type":
-                if isinstance(value, str):
-                    value_list = [value]
-                value_string = ",".join([f"'{v}'" for v in value_list])
-                conditions.append(f"(UPPER({dimension}) IN ({value_string}))")
+
+            if value != "all" and dimension != "user_type":
+                conditions.append(f"(UPPER({dimension}) IN {value})")
 
         condition_string = "\n AND ".join(conditions)
         clients_daily_sql = f"""
