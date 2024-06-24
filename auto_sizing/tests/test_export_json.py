@@ -73,7 +73,7 @@ def test_build_target_key_from_recipe(monkeypatch, manifest_toml):
 
     target_key = build_target_key_from_recipe(recipe_info)
 
-    expected_target_key = "firefox_desktop:release:['EN-CA', 'EN-GB', 'EN-US']:US"
+    expected_target_key = "firefox_desktop:release:['EN-CA','EN-GB','EN-US']:US"
 
     assert target_key == expected_target_key
 
