@@ -1,7 +1,7 @@
 [targets]
 locale = ["('EN-US')", "('EN-US', 'EN-CA', 'EN-GB')"]
-release_channel = ["('RELEASE')"]
-country = ["('US')", "all"]
+release_channel = ["release"]
+country = ["US", "all"]
 user_type = ["new", "existing", "all"]
 
 [parameters]

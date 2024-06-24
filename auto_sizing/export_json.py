@@ -71,6 +71,8 @@ def export_sample_size_json(
 
 def parse_recipe_from_slug(target_slug: str) -> SizingRecipe:
     jobs_dict = toml.load(RUN_MANIFEST)
+    print(jobs_dict)
+    # assert False
 
     # parse out recipe fields
     target_recipe = jobs_dict[target_slug]
