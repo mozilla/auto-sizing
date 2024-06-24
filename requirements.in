@@ -42,7 +42,7 @@ cloudpickle==3.0.0
     #   distributed
 contourpy==1.2.1
     # via matplotlib
-coverage[toml]==7.5.3
+coverage[toml]==7.5.4
     # via
     #   mozilla-auto-sizing
     #   pytest-cov
@@ -149,7 +149,7 @@ grpcio-status==1.62.2
     # via google-api-core
 idna==3.7
     # via requests
-importlib-metadata==7.2.0
+importlib-metadata==7.2.1
     # via dask
 iniconfig==2.0.0
     # via pytest
@@ -199,6 +199,7 @@ mozilla-metric-config-parser==2024.6.1
     #   mozilla-jetstream
 mozilla-nimbus-schemas==2023.10.3
     # via
+    #   mozilla-auto-sizing
     #   mozilla-jetstream
     #   mozilla-metric-config-parser
 msgpack==1.0.8
@@ -407,7 +408,7 @@ types-pytz==2024.1.0.20240417
     # via mozilla-auto-sizing
 types-pyyaml==6.0.12.20240311
     # via mozilla-auto-sizing
-types-requests==2.32.0.20240602
+types-requests==2.32.0.20240622
     # via mozilla-auto-sizing
 types-six==1.16.21.20240513
     # via mozilla-auto-sizing
