@@ -8,8 +8,8 @@ from auto_sizing.export_json import build_target_key_from_recipe, parse_recipe_f
 @pytest.fixture
 def manifest_toml():
     fixture = MagicMock()
-    r3 = '{"locale": "(\'EN-US\')", "release_channel": "(\'RELEASE\')", "country": "all", "user_type": "new"}'  # noqa: E501
-    r6 = '{"locale": "(\'EN-US\', \'EN-CA\', \'EN-GB\')", "release_channel": "(\'RELEASE\')", "country": "(\'US\')", "user_type": "new"}'  # noqa: E501
+    r3 = '{"locale": "(\'EN-US\')", "release_channel": "release", "country": "all", "user_type": "new"}'  # noqa: E501
+    r6 = '{"locale": "(\'EN-US\', \'EN-CA\', \'EN-GB\')", "release_channel": "release", "country": "US", "user_type": "new"}'  # noqa: E501
     target_manifest = {
         "argo_target_0": {
             "app_id": "firefox_desktop",
@@ -33,7 +33,7 @@ def test_parse_recipe_from_slug(monkeypatch, manifest_toml):
     recipe_info = parse_recipe_from_slug(target_slug)
     assert recipe_info.get("app_id") == "firefox_desktop"
     assert recipe_info.get("locale") == "('EN-US')"
-    assert recipe_info.get("channel") == "('RELEASE')"
+    assert recipe_info.get("channel") == "release"
     assert recipe_info.get("country") == "all"
 
     target_slug = "argo_target_1"
@@ -41,8 +41,8 @@ def test_parse_recipe_from_slug(monkeypatch, manifest_toml):
     recipe_info = parse_recipe_from_slug(target_slug)
     assert recipe_info.get("app_id") == "firefox_desktop"
     assert recipe_info.get("locale") == "('EN-US', 'EN-CA', 'EN-GB')"
-    assert recipe_info.get("channel") == "('RELEASE')"
-    assert recipe_info.get("country") == "('US')"
+    assert recipe_info.get("channel") == "release"
+    assert recipe_info.get("country") == "US"
 
 
 def test_parse_recipe_from_slug_manifest():
@@ -52,8 +52,8 @@ def test_parse_recipe_from_slug_manifest():
     recipe_info = parse_recipe_from_slug(target_slug)
     assert recipe_info.get("app_id") == "firefox_desktop"
     assert recipe_info.get("locale") == "('EN-US')"
-    assert recipe_info.get("channel") == "('RELEASE')"
-    assert recipe_info.get("country") == "('US')"
+    assert recipe_info.get("channel") == "release"
+    assert recipe_info.get("country") == "US"
 
 
 def test_build_target_key_from_recipe(monkeypatch, manifest_toml):
