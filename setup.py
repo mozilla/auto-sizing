@@ -61,6 +61,7 @@ setup(
         "mozanalysis",
         "mozilla-jetstream",
         "mozilla-metric-config-parser",
+        "mozilla-nimbus-schemas",
         "pyarrow",
         "pytz",
         "PyYAML",
