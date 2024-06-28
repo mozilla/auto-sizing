@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Dict, List, Literal, Optional, TextIO
 
@@ -83,7 +84,10 @@ class SegmentsList:
             dimension = dimension.replace("release", "normalized")
 
             if value != "all" and dimension != "user_type":
-                conditions.append(f"(UPPER({dimension}) IN {value})")
+                pattern = r"[\(\[]([^\)\]]+)[\)\]]"
+                if not re.search(pattern, value):
+                    value = f"('{value}')"
+                conditions.append(f"(UPPER({dimension}) IN {value.upper()})")
 
         condition_string = "\n AND ".join(conditions)
         clients_daily_sql = f"""
