@@ -180,8 +180,8 @@ def upload_aggregate_json(
 def aggregate_and_reupload(
     project_id: str,
     bucket_name: str,
+    run_date: str,
 ) -> None:
-    today = datetime.today().strftime("%Y-%m-%d")
-    sizing_results = aggregate_results(project_id, bucket_name, today)
+    sizing_results = aggregate_results(project_id, bucket_name, run_date)
 
-    upload_aggregate_json(project_id, bucket_name, sizing_results, today)
+    upload_aggregate_json(project_id, bucket_name, sizing_results, run_date)
