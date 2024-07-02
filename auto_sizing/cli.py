@@ -273,7 +273,7 @@ def cli(
 
 
 class ClickDate(click.ParamType):
-    name = "date"
+    name = "run-date"
 
     def convert(self, value, param, ctx):
         if isinstance(value, datetime):
@@ -348,6 +348,13 @@ cluster_cert_option = click.option(
     "--cluster_cert",
     "--cluster-cert",
     help="Kubernetes cluster certificate used for authenticating to the cluster",
+)
+run_date_option = click.option(
+    "--run-date",
+    type=ClickDate(),
+    help="Run date for which to aggregate and export existing results.",
+    metavar="YYYY-MM-DD",
+    required=False,
 )
 
 
@@ -439,7 +446,8 @@ def run_argo(
 @cli.command()
 @project_id_option
 @bucket_option
-def export_aggregate_results(project_id, bucket):
+@run_date_option
+def export_aggregate_results(project_id, bucket, run_date):
     """
     Retrieves all results from an auto_sizing Argo run from a GCS bucket.
     Aggregates those results into one JSON file and reuploads to that bucket.
@@ -447,7 +455,13 @@ def export_aggregate_results(project_id, bucket):
     if bucket is None:
         raise ValueError("A GCS bucket must be provided to export aggregate results.")
 
-    aggregate_and_reupload(project_id=project_id, bucket_name=bucket)
+    run_date_str = datetime.today().strftime("%Y-%m-%d")
+    if run_date is None:
+        logger.info(f"No date specified, using today's date ({run_date_str})")
+    else:
+        run_date_str = run_date.strftime("%Y-%m-%d")
+
+    aggregate_and_reupload(project_id=project_id, bucket_name=bucket, run_date=run_date_str)
 
 
 def refresh_manifest_file(target_lists_file=TARGET_SETTINGS, manifest_file=RUN_MANIFEST):
