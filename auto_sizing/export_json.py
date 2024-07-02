@@ -162,9 +162,7 @@ def upload_aggregate_json(
 ):
     file_name = f"auto_sizing_results_{today}"
     sizing_json = results.json()
-    _upload_str_to_gcs(
-        project_id, bucket_name, file_name, SAMPLE_SIZE_PATH, json.dumps(sizing_json)
-    )
+    _upload_str_to_gcs(project_id, bucket_name, file_name, SAMPLE_SIZE_PATH, sizing_json)
 
     file_name_latest = "auto_sizing_results_latest"
     _upload_str_to_gcs(
@@ -172,7 +170,7 @@ def upload_aggregate_json(
         bucket_name,
         file_name_latest,
         SAMPLE_SIZE_PATH,
-        json.dumps(sizing_json),
+        sizing_json,
     )
 
 
