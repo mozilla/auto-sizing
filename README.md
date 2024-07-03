@@ -2,6 +2,10 @@
 
 This tool automatically calculates sizing for experiments.
 
+Currently, pre-computed size calculation supports targeting clients on locale, country, channel, or user type, which includes new or existing clients. New clients are defined
+as clients whose first seen date is during the 7 day enrollment period of the size calculation analysis; existing clients are defined as clients whose first seen date was at least
+28 days before the first date of enrollment in the size calculation analysis. For any target dimension, the string `'all'` can be included to omit that condition from client selection.
+
 
 ## Development Info
 ### Local Installation
