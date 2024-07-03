@@ -18,6 +18,10 @@ pip install .
 ### Updating Pre-computed Targets or Parameters
 `auto_sizing/data/target_lists.toml` contains the list of targets and configuration parameters (including metrics). Update this file to change the set of targets to pre-compute.
 
+Currently, pre-computed size calculation supports targeting clients on locale, country, channel, or user type, which includes new or existing clients. New clients are defined
+as clients whose first seen date is during the 7 day enrollment period of the size calculation analysis; existing clients are defined as clients whose first seen date was at least
+28 days before the first date of enrollment in the size calculation analysis. For any target dimension, the string `'all'` can be included to omit that condition from client selection.
+
 *Note* that `locale` is an array of stringified tuples, each of which is a discrete set of locale combinations. In other words, if you include `EN-US` and `EN-UK` in the list separately, there would be no pre-computed sizing for the combination of `EN-US, EN-UK`. To include combinations, add `"('EN-US', 'EN-UK')"` as its own entry in the list.
 
 #### Refresh Manifest
