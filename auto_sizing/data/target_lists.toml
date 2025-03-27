@@ -1,6 +1,6 @@
 [targets]
 locale = ["('EN-US')", "('EN-US', 'EN-CA', 'EN-GB')"]
-release_channel = ["release"]
+release_channel = ["release", "beta", "nightly"]
 country = ["US", "all"]
 user_type = ["new", "existing", "all"]
 
