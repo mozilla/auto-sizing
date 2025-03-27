@@ -380,7 +380,7 @@ def run(
         raise Exception("Either provide a config file or run auto sizing presets.")
 
     analysis_executor = AnalysisExecutor(
-        target_slug=target_slug,
+        target_slug=target_slug if target_slug else All,
         project_id=project_id,
         dataset_id=dataset_id,
         bucket=bucket,
