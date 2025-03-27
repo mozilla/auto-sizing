@@ -10,21 +10,20 @@ test_dependencies = [
     "coverage",
     "isort",
     "jsonschema",
-    "pytest<8",
+    "mypy",
+    "pytest",
     "pytest-black",
     "pytest-cov",
     "pytest-flake8",
-    "mypy",
     "types-futures",
-    "types-pkg-resources",
     "types-protobuf",
     "types-pytz",
     "types-PyYAML",
     "types-requests",
+    "types-setuptools",
     "types-six",
     "types-toml",
 ]
-
 extras = {
     "testing": test_dependencies,
 }
@@ -34,7 +33,7 @@ setup(
     author="Mozilla Corporation",
     author_email="fx-data-dev@mozilla.org",
     description="Runs automatic sample size calc",
-    url="https://github.com/m-d-bowerman/auto-sizing",
+    url="https://github.com/mozilla/auto-sizing",
     packages=[
         "auto_sizing",
         "auto_sizing.logging",
