@@ -4,8 +4,9 @@ metadata:
   generateName: auto-sizing-
 spec:
   entrypoint: auto-sizing
-  ttl-strategy:
+  ttlStrategy:
     secondsAfterSuccess: 2592000 # delete workflows automatically after 30 days
+    secondsAfterCompletion: 4320000 # delete workflows automatically after 50 days
   arguments:
     parameters:
     - name: targets  # set dynamically when workflow gets deployed
